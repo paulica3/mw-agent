@@ -261,7 +261,9 @@ body.cursor-hot .cursor-star svg {
 .main {
     position: relative;
     z-index: 10;
-    padding: 4rem 2rem 6rem;
+    /* nav is position: fixed, so clear it via a JS-measured height var.
+       fallback covers SSR / pre-script paint. */
+    padding: calc(var(--nav-h, 3.6rem) + 0.8rem) 2rem 6rem;
     min-height: calc(100vh - 200px);
 }
 .footer {
@@ -810,7 +812,7 @@ body.cursor-hot .cursor-star svg {
 
 /* tablets / smaller laptops */
 @media (max-width: 1100px) {
-    .main { padding: 3rem 1.5rem 5rem; }
+    .main { padding: calc(var(--nav-h, 3.6rem) + 0.8rem) 1.5rem 5rem; }
     .hero-title { font-size: clamp(2.6rem, 10vw, 7rem); }
     .gen-title { font-size: clamp(2rem, 6vw, 4rem); }
     .portal { min-height: 320px; padding: 1.6rem; }
@@ -830,7 +832,7 @@ body.cursor-hot .cursor-star svg {
     .nav-link { font-size: 0.72rem; letter-spacing: 0.14em; }
     .nav-status { display: none; }
 
-    .main { padding: 4rem 1rem 4rem; }
+    .main { padding: calc(var(--nav-h, 5rem) + 1rem) 1rem 4rem; }
 
     .hero { padding-top: 1rem; }
     .hero-meta {
@@ -923,7 +925,7 @@ body.cursor-hot .cursor-star svg {
     .nav-link { font-size: 0.6rem; padding: 0.1rem 0; letter-spacing: 0.1em; }
     .nav-links { gap: 0.6rem; }
 
-    .main { padding: 4rem 0.75rem 3rem; }
+    .main { padding: calc(var(--nav-h, 5rem) + 1rem) 0.75rem 3rem; }
 
     .hero-meta { font-size: 0.56rem; gap: 0.4rem; }
     .hero-meta .meta-sep { display: none; }
@@ -968,7 +970,7 @@ body.cursor-hot .cursor-star svg {
 
 /* short viewports — keep hero usable */
 @media (max-height: 620px) and (min-width: 900px) {
-    .main { padding: 2rem 2rem 3rem; }
+    .main { padding: calc(var(--nav-h, 3.6rem) + 0.5rem) 2rem 3rem; }
     .hero { padding-top: 0; }
     .hero-meta { margin-bottom: 1.5rem; }
     .portals { margin-top: 2rem; }

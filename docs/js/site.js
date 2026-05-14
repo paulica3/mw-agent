@@ -57,6 +57,23 @@
        any other state → hide                                       */
     const navEl = document.querySelector(".nav");
     if (navEl) {
+        /* expose actual nav height as a CSS var so .main can pad-top correctly.
+           the nav wraps to 2 rows on small screens, fonts load async, and the
+           bloom theme uses different typography — all change the height. */
+        const measureNav = () => {
+            if (!navEl.classList.contains("nav--hidden")) {
+                const h = navEl.offsetHeight;
+                if (h > 0) document.documentElement.style.setProperty("--nav-h", h + "px");
+            }
+        };
+        measureNav();
+        window.addEventListener("resize", measureNav, { passive: true });
+        if (document.fonts && document.fonts.ready) document.fonts.ready.then(measureNav);
+        // re-measure on theme toggle (different fonts → different height)
+        new MutationObserver(measureNav).observe(document.documentElement, {
+            attributes: true, attributeFilter: ["data-theme"]
+        });
+
         const SHOW_AT_TOP = 80;     // px from page top where nav is always shown
         const HOVER_ZONE  = 72;     // px from viewport top that re-shows nav
         let hovering = false;
