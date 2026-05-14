@@ -1,40 +1,46 @@
 #!/usr/bin/env python3
 """
-Build the static `docs/` site from the Razor source.
+Build the static site from the Razor source.
+
+Vercel runs this on every push (see vercel.json: buildCommand). The output
+goes to docs/, which Vercel serves as the deploy. The folder is gitignored
+and never committed — it only ever exists on the build server (or on your
+machine if you run the script locally to preview).
 
 Run locally:
     python scripts/build-docs.py
+    # then open docs/index.html in a browser
 
-Run automatically:
-    .github/workflows/build-docs.yml runs this on every push that touches
-    mw-agent/wwwroot/** or mw-agent/Pages/**, then commits the rebuilt
-    docs/ back to main so GitHub Pages picks it up.
-
-The transformation is intentionally simple — string substitution against
-the known Razor patterns we use. No real Razor parser; if the templates
-grow more dynamic, swap this for a proper static-site approach.
+The transformation is intentionally simple string substitution against the
+exact Razor patterns the templates use. There's no real Razor parser — if
+the templates ever grow @if / @foreach logic, swap this script for a real
+static-site generator (Astro / Eleventy / Hugo).
 """
 
 import re
 import shutil
 from pathlib import Path
 
-ROOT     = Path(__file__).resolve().parent.parent
-SRC      = ROOT / "mw-agent"
-WWWROOT  = SRC / "wwwroot"
-PAGES    = SRC / "Pages"
-DOCS     = ROOT / "docs"
-LAYOUT   = PAGES / "Shared" / "_Layout.cshtml"
+# ---------- paths ----------
 
-# slug → source .cshtml path
+ROOT    = Path(__file__).resolve().parent.parent
+SRC     = ROOT / "mw-agent"
+WWWROOT = SRC / "wwwroot"
+PAGES   = SRC / "Pages"
+LAYOUT  = PAGES / "Shared" / "_Layout.cshtml"
+OUT     = ROOT / "docs"
+
 PAGE_FILES = {
     "index": PAGES / "Index.cshtml",
     "image": PAGES / "Image.cshtml",
     "video": PAGES / "Video.cshtml",
 }
 
-# inline script we substitute for the server-side cookie reader
-# (no leading indent — the regex captures the surrounding whitespace itself)
+
+# ---------- snippets injected into the output ----------
+
+# replaces the layout's server-cookie pre-paint script with a localStorage-only
+# version. no leading indent here — the regex captures the surrounding indent.
 PRE_PAINT_SCRIPT = """<script>
         // pre-paint theme sync from localStorage (avoids FOUC)
         (function(){
@@ -49,38 +55,41 @@ PRE_PAINT_SCRIPT = """<script>
         })();
     </script>"""
 
-
-def read_source(path: Path) -> str:
-    """Read a Razor file, stripping any UTF-8 BOM that breaks anchored regex."""
-    return path.read_text(encoding="utf-8-sig")
-
-# script that populates the current year in any <span class="year">
+# populates the current year into every <span class="year"> placeholder
 YEAR_SCRIPT = (
     '<script>document.querySelectorAll(\'.year\').forEach('
     'function(el){ el.textContent = new Date().getUTCFullYear(); });</script>\n'
 )
 
-
-# ---------- step 1: copy static assets verbatim ----------
-
-def sync_assets() -> None:
-    DOCS.mkdir(exist_ok=True)
-    (DOCS / "css").mkdir(exist_ok=True)
-    (DOCS / "js").mkdir(exist_ok=True)
-    shutil.copy(WWWROOT / "css" / "site.css", DOCS / "css" / "site.css")
-    shutil.copy(WWWROOT / "js"  / "site.js",  DOCS / "js"  / "site.js")
-    shutil.copy(WWWROOT / "favicon.svg",      DOCS / "favicon.svg")
-    (DOCS / ".nojekyll").touch()
-    print("synced css, js, favicon, .nojekyll")
+# substitutions applied to both layout and page bodies
+COMMON_REPLACEMENTS = [
+    ('asp-page="/Index"', 'href="index.html"'),
+    ('asp-page="/Image"', 'href="image.html"'),
+    ('asp-page="/Video"', 'href="video.html"'),
+    ('~/favicon.svg',     'favicon.svg'),
+    ('~/css/site.css',    'css/site.css'),
+    ('~/js/site.js',      'js/site.js'),
+]
 
 
-# ---------- step 2: razor → html ----------
+# ---------- helpers ----------
+
+def read_source(path: Path) -> str:
+    """Read a Razor file, stripping any UTF-8 BOM that would break ^ anchors."""
+    return path.read_text(encoding="utf-8-sig")
+
+
+def apply_common(text: str) -> str:
+    for old, new in COMMON_REPLACEMENTS:
+        text = text.replace(old, new)
+    return re.sub(r'\s*asp-append-version="true"', "", text)
+
 
 def strip_top_razor_block(text: str) -> str:
     """Remove leading @page / @model directives and the opening @{ ... } block."""
-    text = re.sub(r"^@page\s*\n",          "", text, flags=re.MULTILINE)
-    text = re.sub(r"^@model\s+\w+\s*\n",   "", text, flags=re.MULTILINE)
-    text = re.sub(r"@\{.*?\}\s*\n?",       "", text, count=1, flags=re.DOTALL)
+    text = re.sub(r"^@page\s*\n",        "", text, flags=re.MULTILINE)
+    text = re.sub(r"^@model\s+\w+\s*\n", "", text, flags=re.MULTILINE)
+    text = re.sub(r"@\{.*?\}\s*\n?",     "", text, count=1, flags=re.DOTALL)
     return text.lstrip()
 
 
@@ -89,34 +98,26 @@ def extract_title(page_text: str) -> str:
     return m.group(1) if m else "PAGE"
 
 
-# all string substitutions that apply to both layout and page bodies
-COMMON_REPLACEMENTS = [
-    # asp-page → static href
-    ('asp-page="/Index"', 'href="index.html"'),
-    ('asp-page="/Image"', 'href="image.html"'),
-    ('asp-page="/Video"', 'href="video.html"'),
-    # razor path tilde → relative
-    ('~/favicon.svg',  'favicon.svg'),
-    ('~/css/site.css', 'css/site.css'),
-    ('~/js/site.js',   'js/site.js'),
-]
+# ---------- build steps ----------
+
+def sync_assets() -> None:
+    """Copy css, js, and favicon from wwwroot into the output directory."""
+    OUT.mkdir(exist_ok=True)
+    (OUT / "css").mkdir(exist_ok=True)
+    (OUT / "js").mkdir(exist_ok=True)
+    shutil.copy(WWWROOT / "css" / "site.css", OUT / "css" / "site.css")
+    shutil.copy(WWWROOT / "js"  / "site.js",  OUT / "js"  / "site.js")
+    shutil.copy(WWWROOT / "favicon.svg",      OUT / "favicon.svg")
+    print("synced css, js, favicon")
 
 
-def apply_common(text: str) -> str:
-    for old, new in COMMON_REPLACEMENTS:
-        text = text.replace(old, new)
-    # strip asp-append-version="true" attributes (and the preceding whitespace)
-    text = re.sub(r'\s*asp-append-version="true"', "", text)
-    return text
-
-
-def transform_layout(layout: str, slug: str, title: str, body_html: str) -> str:
+def render_page(layout: str, slug: str, title: str, body_html: str) -> str:
     out = layout
 
-    # drop the leading @{ ... } directive block
+    # drop the layout's leading @{ ... } directive block
     out = re.sub(r"@\{.*?\}\s*\n", "", out, count=1, flags=re.DOTALL)
 
-    # razor interpolations in the layout → static values
+    # replace razor interpolations with static values
     out = out.replace('data-theme="@theme"',     'data-theme="chaos"')
     out = out.replace('content="@themeColor"',   'content="#050505"')
     out = out.replace('@ViewData["Title"]',      title)
@@ -125,7 +126,7 @@ def transform_layout(layout: str, slug: str, title: str, body_html: str) -> str:
 
     out = apply_common(out)
 
-    # replace the cookie-syncing pre-paint script with the localStorage-only version
+    # swap server cookie reader for localStorage-only pre-paint script
     out = re.sub(
         r'<script>\s*//\s*belt-and-suspenders.*?</script>',
         PRE_PAINT_SCRIPT,
@@ -133,34 +134,32 @@ def transform_layout(layout: str, slug: str, title: str, body_html: str) -> str:
         flags=re.DOTALL,
     )
 
-    # no razor sections in a static build
+    # razor sections don't exist in a static build
     out = re.sub(r"@await RenderSectionAsync\([^)]*\)\s*", "", out)
 
-    # inject the page body
+    # inject the page body and the year-population script
     out = out.replace("@RenderBody()", body_html)
-
-    # populate year placeholders client-side
     out = out.replace("</body>", YEAR_SCRIPT + "</body>")
 
     return out
 
 
-def build_html() -> None:
+def build_pages() -> None:
     layout = read_source(LAYOUT)
     for slug, src in PAGE_FILES.items():
         raw   = read_source(src)
         title = extract_title(raw)
         body  = apply_common(strip_top_razor_block(raw))
-        html  = transform_layout(layout, slug, title, body)
-        out   = DOCS / f"{slug}.html"
-        out.write_text(html, encoding="utf-8")
-        print(f"built {out.relative_to(ROOT).as_posix()}")
+        html  = render_page(layout, slug, title, body)
+        path  = OUT / f"{slug}.html"
+        path.write_text(html, encoding="utf-8")
+        print(f"built {path.relative_to(ROOT).as_posix()}")
 
 
 def main() -> None:
     sync_assets()
-    build_html()
-    print("\ndocs/ rebuilt successfully")
+    build_pages()
+    print("\nbuild complete")
 
 
 if __name__ == "__main__":
