@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="chaos">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+    <meta name="theme-color" content="#050505" id="themeColorMeta"/>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg"/>
+    <link rel="alternate icon" href="favicon.svg"/>
+    <link rel="apple-touch-icon" href="favicon.svg"/>
+    <title>VIDEO_GEN // XPERIMENT_AI</title>
+    <script>
+        (function(){
+            try {
+                var stored = localStorage.getItem('xa-theme');
+                if (stored === 'bloom' || stored === 'chaos') {
+                    document.documentElement.setAttribute('data-theme', stored);
+                    var meta = document.querySelector('meta[name="theme-color"]');
+                    if (meta) meta.setAttribute('content', stored === 'bloom' ? '#f1e9da' : '#050505');
+                }
+            } catch(e) {}
+        })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&family=Space+Mono:wght@400;700&family=Press+Start+2P&family=Italianno&family=Pinyon+Script&family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/site.css"/>
+</head>
+<body class="page-video">
+
+<div class="fx-layer fx-grid"></div>
+<canvas id="fx-noise" class="fx-layer fx-noise"></canvas>
+<div class="fx-layer fx-scanlines"></div>
+<div class="fx-layer fx-vignette"></div>
+<div class="fx-layer fx-orbs">
+    <span class="orb orb-1"></span>
+    <span class="orb orb-2"></span>
+    <span class="orb orb-3"></span>
+    <span class="orb orb-4"></span>
+</div>
+
+<canvas id="sparkle-trail" class="sparkle-trail"></canvas>
+<div class="cursor-star" id="cursorStar">
+    <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M16 0 L17.8 14.2 L32 16 L17.8 17.8 L16 32 L14.2 17.8 L0 16 L14.2 14.2 Z" fill="white"/>
+        <path d="M16 6 L16.9 14.8 L26 16 L16.9 17.2 L16 26 L15.1 17.2 L6 16 L15.1 14.8 Z" fill="rgba(0,0,0,0.5)"/>
+    </svg>
+</div>
+
+<header class="nav">
+    <a class="nav-brand glitch" data-text="XPERIMENT_AI" href="index.html">
+        <span>XPERIMENT</span><span class="nav-brand-accent">_AI</span>
+    </a>
+    <nav class="nav-links">
+        <a href="index.html" class="nav-link">[ HOME ]</a>
+        <a href="image.html" class="nav-link">[ IMAGE ]</a>
+        <a href="video.html" class="nav-link">[ VIDEO ]</a>
+    </nav>
+    <div class="nav-right">
+        <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle theme" title="Switch mood">
+            <span class="toggle-label toggle-label--left">CHAOS</span>
+            <span class="toggle-track">
+                <span class="toggle-thumb">
+                    <span class="toggle-icon toggle-icon--star">✦</span>
+                    <span class="toggle-icon toggle-icon--bloom">✿</span>
+                </span>
+            </span>
+            <span class="toggle-label toggle-label--right">bloom</span>
+        </button>
+        <div class="nav-status">
+            <span class="status-dot"></span>
+            <span class="status-text" id="navClock">SYS.ONLINE</span>
+        </div>
+    </div>
+</header>
+
+<main class="main">
+<section class="gen">
+    <div class="gen-head">
+        <div class="gen-crumbs">/ <a href="index.html">HOME</a> / <span class="hl">VIDEO_GEN</span></div>
+        <h1 class="gen-title glitch" data-text="VIDEO_SYNTH">VIDEO_SYNTH</h1>
+        <p class="gen-lede">frames in motion. lock a style, iterate forward, keep the chaos coherent.</p>
+    </div>
+
+    <div class="gen-grid">
+        <div class="gen-panel">
+            <div class="panel-bar">
+                <span class="panel-tag">01</span>
+                <span class="panel-name">// THEME</span>
+                <span class="panel-hint">choose one</span>
+            </div>
+            <div class="chip-grid" data-group="theme">
+                <button class="chip" data-value="futuristic">FUTURISTIC</button>
+                <button class="chip" data-value="surreal">SURREAL</button>
+                <button class="chip" data-value="gritty">GRITTY</button>
+                <button class="chip" data-value="dreamlike">DREAMLIKE</button>
+                <button class="chip" data-value="retro">RETRO</button>
+                <button class="chip" data-value="classic">CLASSIC</button>
+            </div>
+        </div>
+
+        <div class="gen-panel">
+            <div class="panel-bar">
+                <span class="panel-tag">02</span>
+                <span class="panel-name">// MOTION</span>
+                <span class="panel-hint">how it moves</span>
+            </div>
+            <div class="chip-grid" data-group="motion">
+                <button class="chip" data-value="static">STATIC_HOLD</button>
+                <button class="chip" data-value="slow_pan">SLOW_PAN</button>
+                <button class="chip" data-value="dolly">DOLLY_PUSH</button>
+                <button class="chip" data-value="orbit">ORBIT</button>
+                <button class="chip" data-value="handheld">HANDHELD</button>
+                <button class="chip" data-value="warp">REALITY_WARP</button>
+            </div>
+        </div>
+
+        <div class="gen-panel">
+            <div class="panel-bar">
+                <span class="panel-tag">03</span>
+                <span class="panel-name">// MOOD</span>
+                <span class="panel-hint">energy curve</span>
+            </div>
+            <div class="chip-grid" data-group="mood">
+                <button class="chip" data-value="dark">DARK_&amp;_TENSE</button>
+                <button class="chip" data-value="euphoric">EUPHORIC</button>
+                <button class="chip" data-value="melancholic">MELANCHOLIC</button>
+                <button class="chip" data-value="chaotic">CHAOTIC</button>
+            </div>
+        </div>
+
+        <div class="gen-panel">
+            <div class="panel-bar">
+                <span class="panel-tag">04</span>
+                <span class="panel-name">// DURATION</span>
+                <span class="panel-hint">seconds of chaos</span>
+            </div>
+            <div class="chip-grid" data-group="duration">
+                <button class="chip" data-value="2">02s</button>
+                <button class="chip" data-value="4">04s</button>
+                <button class="chip" data-value="8">08s</button>
+                <button class="chip" data-value="12">12s</button>
+            </div>
+        </div>
+
+        <div class="gen-panel gen-panel--wide">
+            <div class="panel-bar">
+                <span class="panel-tag">05</span>
+                <span class="panel-name">// SEED_FRAME</span>
+                <span class="panel-hint">optional. continuity anchor.</span>
+            </div>
+            <label class="dropzone" for="refUpload">
+                <input id="refUpload" type="file" accept="image/*" hidden>
+                <div class="dropzone-inner">
+                    <div class="drop-cross">+</div>
+                    <div class="drop-text">DRAG &middot; CLICK &middot; PASTE</div>
+                    <div class="drop-sub" id="dropSub">no seed frame</div>
+                </div>
+            </label>
+        </div>
+
+        <div class="gen-panel gen-panel--wide">
+            <div class="panel-bar">
+                <span class="panel-tag">06</span>
+                <span class="panel-name">// DIRECTOR_NOTES</span>
+                <span class="panel-hint">optional. one line of intent.</span>
+            </div>
+            <textarea class="director" placeholder="> figure walks toward camera as the room dissolves..."></textarea>
+        </div>
+    </div>
+
+    <div class="gen-foot">
+        <div class="prompt-readout">
+            <span class="readout-label">// ASSEMBLED_SIGNAL</span>
+            <div class="readout-body" id="promptReadout">— awaiting input —</div>
+        </div>
+        <button class="generate" id="generateBtn">
+            <span class="gen-label">RENDER</span>
+            <span class="gen-arrow">»</span>
+        </button>
+    </div>
+</section>
+</main>
+
+<footer class="footer">
+    <div class="footer-row">
+        <span class="footer-text footer-text--chaos">// XPERIMENT_AI v0.1</span>
+        <span class="footer-text footer-text--bloom">xperiment.ai · made for the mood</span>
+        <span class="footer-blink">█</span>
+        <span class="footer-text footer-text--chaos"><span class="year">2026</span> — ALL SIGNALS DISTORTED</span>
+        <span class="footer-text footer-text--bloom"><span class="year">2026</span> · stay soft</span>
+    </div>
+</footer>
+
+<script src="js/site.js"></script>
+<script>document.querySelectorAll('.year').forEach(function(el){ el.textContent = new Date().getUTCFullYear(); });</script>
+</body>
+</html>

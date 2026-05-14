@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="chaos">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+    <meta name="theme-color" content="#050505" id="themeColorMeta"/>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg"/>
+    <link rel="alternate icon" href="favicon.svg"/>
+    <link rel="apple-touch-icon" href="favicon.svg"/>
+    <title>HOME // XPERIMENT_AI</title>
+    <script>
+        // pre-paint theme sync from localStorage (avoids FOUC)
+        (function(){
+            try {
+                var stored = localStorage.getItem('xa-theme');
+                if (stored === 'bloom' || stored === 'chaos') {
+                    document.documentElement.setAttribute('data-theme', stored);
+                    var meta = document.querySelector('meta[name="theme-color"]');
+                    if (meta) meta.setAttribute('content', stored === 'bloom' ? '#f1e9da' : '#050505');
+                }
+            } catch(e) {}
+        })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&family=Space+Mono:wght@400;700&family=Press+Start+2P&family=Italianno&family=Pinyon+Script&family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/site.css"/>
+</head>
+<body class="page-index">
+
+<div class="fx-layer fx-grid"></div>
+<canvas id="fx-noise" class="fx-layer fx-noise"></canvas>
+<div class="fx-layer fx-scanlines"></div>
+<div class="fx-layer fx-vignette"></div>
+<div class="fx-layer fx-orbs">
+    <span class="orb orb-1"></span>
+    <span class="orb orb-2"></span>
+    <span class="orb orb-3"></span>
+    <span class="orb orb-4"></span>
+</div>
+
+<canvas id="sparkle-trail" class="sparkle-trail"></canvas>
+<div class="cursor-star" id="cursorStar">
+    <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M16 0 L17.8 14.2 L32 16 L17.8 17.8 L16 32 L14.2 17.8 L0 16 L14.2 14.2 Z" fill="white"/>
+        <path d="M16 6 L16.9 14.8 L26 16 L16.9 17.2 L16 26 L15.1 17.2 L6 16 L15.1 14.8 Z" fill="rgba(0,0,0,0.5)"/>
+    </svg>
+</div>
+
+<header class="nav">
+    <a class="nav-brand glitch" data-text="XPERIMENT_AI" href="index.html">
+        <span>XPERIMENT</span><span class="nav-brand-accent">_AI</span>
+    </a>
+    <nav class="nav-links">
+        <a href="index.html" class="nav-link">[ HOME ]</a>
+        <a href="image.html" class="nav-link">[ IMAGE ]</a>
+        <a href="video.html" class="nav-link">[ VIDEO ]</a>
+    </nav>
+    <div class="nav-right">
+        <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle theme" title="Switch mood">
+            <span class="toggle-label toggle-label--left">CHAOS</span>
+            <span class="toggle-track">
+                <span class="toggle-thumb">
+                    <span class="toggle-icon toggle-icon--star">✦</span>
+                    <span class="toggle-icon toggle-icon--bloom">✿</span>
+                </span>
+            </span>
+            <span class="toggle-label toggle-label--right">bloom</span>
+        </button>
+        <div class="nav-status">
+            <span class="status-dot"></span>
+            <span class="status-text" id="navClock">SYS.ONLINE</span>
+        </div>
+    </div>
+</header>
+
+<main class="main">
+<section class="hero">
+    <div class="hero-meta">
+        <span class="meta-tick">▌</span>
+        <span>BOOT_SEQUENCE/COMPLETE</span>
+        <span class="meta-sep">//</span>
+        <span>OPERATOR: <em>UNKNOWN</em></span>
+        <span class="meta-sep">//</span>
+        <span class="meta-pulse">AWAITING_INPUT</span>
+    </div>
+
+    <h1 class="hero-title">
+        <span class="hero-line glitch" data-text="XPERIMENT">XPERIMENT</span>
+        <span class="hero-line hero-line--alt glitch glitch--slow" data-text="_AI">_AI</span>
+    </h1>
+
+    <p class="hero-sub">
+        an engine for chaotic visuals.<br/>
+        no prompts. no typing. just <span class="hl">signal</span>.
+    </p>
+
+    <div class="portals">
+        <a href="image.html" class="portal portal--image">
+            <div class="portal-tag">[ 01 ]</div>
+            <div class="portal-title glitch" data-text="IMAGE">IMAGE</div>
+            <div class="portal-sub">single frame &middot; still chaos</div>
+            <div class="portal-art portal-art--image">
+                <span></span><span></span><span></span><span></span><span></span><span></span>
+                <span></span><span></span><span></span><span></span><span></span><span></span>
+            </div>
+            <div class="portal-cta">ENTER &nbsp;»</div>
+        </a>
+
+        <a href="video.html" class="portal portal--video">
+            <div class="portal-tag">[ 02 ]</div>
+            <div class="portal-title glitch" data-text="VIDEO">VIDEO</div>
+            <div class="portal-sub">moving frames &middot; sequence chaos</div>
+            <div class="portal-art portal-art--video">
+                <div class="film">
+                    <div class="film-strip"></div>
+                    <div class="film-strip"></div>
+                    <div class="film-strip"></div>
+                </div>
+            </div>
+            <div class="portal-cta">ENTER &nbsp;»</div>
+        </a>
+    </div>
+
+    <div class="ticker">
+        <div class="ticker-track">
+            <span>★ FUTURISTIC ★ SURREAL ★ GRITTY ★ DREAMLIKE ★ RETRO ★ NEON ★ MONOCHROME ★ DISTORTED ★ HOLOGRAPHIC ★ CINEMATIC ★ CHAOTIC ★</span>
+            <span>★ FUTURISTIC ★ SURREAL ★ GRITTY ★ DREAMLIKE ★ RETRO ★ NEON ★ MONOCHROME ★ DISTORTED ★ HOLOGRAPHIC ★ CINEMATIC ★ CHAOTIC ★</span>
+        </div>
+    </div>
+</section>
+</main>
+
+<footer class="footer">
+    <div class="footer-row">
+        <span class="footer-text footer-text--chaos">// XPERIMENT_AI v0.1</span>
+        <span class="footer-text footer-text--bloom">xperiment.ai · made for the mood</span>
+        <span class="footer-blink">█</span>
+        <span class="footer-text footer-text--chaos"><span id="year">2026</span> — ALL SIGNALS DISTORTED</span>
+        <span class="footer-text footer-text--bloom"><span class="year-bloom">2026</span> · stay soft</span>
+    </div>
+</footer>
+
+<script src="js/site.js"></script>
+<script>document.querySelectorAll('#year, .year-bloom').forEach(function(el){ el.textContent = new Date().getUTCFullYear(); });</script>
+</body>
+</html>
