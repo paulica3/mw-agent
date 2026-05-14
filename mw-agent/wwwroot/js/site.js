@@ -5,6 +5,42 @@
 (() => {
     "use strict";
 
+    /* ---------- THEME TOGGLE ---------- */
+    const root = document.documentElement;
+    const themeBtn = document.getElementById("themeToggle");
+    const themeMeta = document.getElementById("themeColorMeta");
+    const THEME_KEY = "xa-theme";
+
+    let currentSparkle = "255, 255, 255";
+    const readSparkle = () => {
+        const v = getComputedStyle(root).getPropertyValue("--sparkle-rgb").trim();
+        if (v) currentSparkle = v;
+    };
+
+    const applyTheme = (theme, animate = true) => {
+        root.setAttribute("data-theme", theme);
+        try { localStorage.setItem(THEME_KEY, theme); } catch (e) {}
+        if (themeMeta) themeMeta.setAttribute("content", theme === "bloom" ? "#f1e9da" : "#050505");
+        readSparkle();
+
+        if (animate) {
+            // small celebratory sparkle burst on toggle
+            const burstX = themeBtn ? themeBtn.getBoundingClientRect().left + 40 : window.innerWidth / 2;
+            const burstY = themeBtn ? themeBtn.getBoundingClientRect().top + 14  : window.innerHeight / 2;
+            window.dispatchEvent(new CustomEvent("xa-burst", { detail: { x: burstX, y: burstY, count: 18 } }));
+        }
+    };
+
+    // initial sparkle read (theme was set pre-paint in <head>)
+    readSparkle();
+
+    if (themeBtn) {
+        themeBtn.addEventListener("click", () => {
+            const next = root.getAttribute("data-theme") === "bloom" ? "chaos" : "bloom";
+            applyTheme(next, true);
+        });
+    }
+
     /* ---------- NOISE CANVAS ---------- */
     const noise = document.getElementById("fx-noise");
     if (noise) {
@@ -133,8 +169,8 @@
 
                 /* outer glow */
                 const grd = ctx2.createRadialGradient(0, 0, 0, 0, 0, p.size * p.scale * 2.5);
-                grd.addColorStop(0, "rgba(255,255,255,0.6)");
-                grd.addColorStop(1, "rgba(255,255,255,0)");
+                grd.addColorStop(0, `rgba(${currentSparkle}, 0.6)`);
+                grd.addColorStop(1, `rgba(${currentSparkle}, 0)`);
                 ctx2.fillStyle = grd;
                 ctx2.beginPath();
                 ctx2.arc(0, 0, p.size * p.scale * 2.5, 0, Math.PI * 2);
@@ -142,7 +178,7 @@
 
                 /* sharp star */
                 drawStar4(ctx2, p.size * p.scale, 0);
-                ctx2.fillStyle = "rgba(255,255,255,0.95)";
+                ctx2.fillStyle = `rgba(${currentSparkle}, 0.95)`;
                 ctx2.fill();
 
                 ctx2.restore();
@@ -178,6 +214,13 @@
         /* click burst */
         document.addEventListener("click", () => {
             for (let i = 0; i < 12; i++) spawnSparkle(mx, my);
+        });
+
+        /* theme-toggle burst */
+        window.addEventListener("xa-burst", (e) => {
+            const { x, y, count } = e.detail || {};
+            if (typeof x !== "number" || typeof y !== "number") return;
+            for (let i = 0; i < (count || 12); i++) spawnSparkle(x, y);
         });
     }
 

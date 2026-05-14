@@ -7,11 +7,20 @@
 <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
-    <meta name="theme-color" content="#050505"/>
+    <meta name="theme-color" content="#050505" id="themeColorMeta"/>
     <title>@ViewData["Title"] // XPERIMENT_AI</title>
+    <script>
+        // pre-paint theme to avoid flash
+        (function(){
+            try {
+                var t = localStorage.getItem('xa-theme') || 'chaos';
+                document.documentElement.setAttribute('data-theme', t);
+            } catch(e) {}
+        })();
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=VT323&family=Space+Mono:wght@400;700&family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=VT323&family=Space+Mono:wght@400;700&family=Press+Start+2P&family=Italianno&family=Pinyon+Script&family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true"/>
 </head>
 <body class="page-@bodyClass">
@@ -20,6 +29,12 @@
 <canvas id="fx-noise" class="fx-layer fx-noise"></canvas>
 <div class="fx-layer fx-scanlines"></div>
 <div class="fx-layer fx-vignette"></div>
+<div class="fx-layer fx-orbs">
+    <span class="orb orb-1"></span>
+    <span class="orb orb-2"></span>
+    <span class="orb orb-3"></span>
+    <span class="orb orb-4"></span>
+</div>
 
 <canvas id="sparkle-trail" class="sparkle-trail"></canvas>
 <div class="cursor-star" id="cursorStar">
@@ -38,9 +53,21 @@
         <a asp-page="/Image" class="nav-link">[ IMAGE ]</a>
         <a asp-page="/Video" class="nav-link">[ VIDEO ]</a>
     </nav>
-    <div class="nav-status">
-        <span class="status-dot"></span>
-        <span class="status-text" id="navClock">SYS.ONLINE</span>
+    <div class="nav-right">
+        <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle theme" title="Switch mood">
+            <span class="toggle-label toggle-label--left">CHAOS</span>
+            <span class="toggle-track">
+                <span class="toggle-thumb">
+                    <span class="toggle-icon toggle-icon--star">✦</span>
+                    <span class="toggle-icon toggle-icon--bloom">✿</span>
+                </span>
+            </span>
+            <span class="toggle-label toggle-label--right">bloom</span>
+        </button>
+        <div class="nav-status">
+            <span class="status-dot"></span>
+            <span class="status-text" id="navClock">SYS.ONLINE</span>
+        </div>
     </div>
 </header>
 
@@ -50,9 +77,11 @@
 
 <footer class="footer">
     <div class="footer-row">
-        <span>// XPERIMENT_AI v0.1 — A_GREAT_CHAOS_BUILD</span>
+        <span class="footer-text footer-text--chaos">// XPERIMENT_AI v0.1 — A_GREAT_CHAOS_BUILD</span>
+        <span class="footer-text footer-text--bloom">xperiment.ai · made for the mood</span>
         <span class="footer-blink">█</span>
-        <span>@DateTime.UtcNow.Year — ALL SIGNALS DISTORTED</span>
+        <span class="footer-text footer-text--chaos">@DateTime.UtcNow.Year — ALL SIGNALS DISTORTED</span>
+        <span class="footer-text footer-text--bloom">@DateTime.UtcNow.Year · stay soft</span>
     </div>
 </footer>
 
