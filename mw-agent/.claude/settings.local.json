@@ -4,7 +4,11 @@
       "PowerShell(Get-ChildItem \"C:\\\\Users\\\\paolo\\\\repos\\\\mw-agent\\\\\" -Force | ForEach-Object { \"$\\($_.Attributes\\) $\\($_.Name\\)\" })",
       "PowerShell(dotnet build \"C:\\\\Users\\\\paolo\\\\repos\\\\mw-agent\\\\mw-agent\\\\mw-agent.csproj\" --nologo 2>&1)",
       "mcp__Claude_Preview__preview_start",
-      "PowerShell(try { $r = Invoke-WebRequest -Uri \"http://localhost:5169/\" -MaximumRedirection 0 -ErrorAction Stop; $r.StatusCode } catch { $_.Exception.Response.StatusCode.value__; $_.Exception.Response.Headers.Location })"
+      "PowerShell(try { $r = Invoke-WebRequest -Uri \"http://localhost:5169/\" -MaximumRedirection 0 -ErrorAction Stop; $r.StatusCode } catch { $_.Exception.Response.StatusCode.value__; $_.Exception.Response.Headers.Location })",
+      "Bash(curl.exe -s -H \"Cookie: xa-theme=bloom\" http://localhost:5169/Image)",
+      "Bash(curl.exe -s http://localhost:5169/)",
+      "Bash(curl.exe -s -H \"Cookie: xa-theme=chaos\" http://localhost:5169/Video)",
+      "Bash(curl.exe -s -H \"Cookie: xa-theme=bloom\" http://localhost:5169/Video)"
     ]
   }
 }

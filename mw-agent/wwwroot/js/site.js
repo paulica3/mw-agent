@@ -20,18 +20,19 @@
     const applyTheme = (theme, animate = true) => {
         root.setAttribute("data-theme", theme);
         try { localStorage.setItem(THEME_KEY, theme); } catch (e) {}
+        // cookie → so server renders the right data-theme on next navigation
+        document.cookie = `xa-theme=${theme}; path=/; max-age=31536000; samesite=lax`;
         if (themeMeta) themeMeta.setAttribute("content", theme === "bloom" ? "#f1e9da" : "#050505");
         readSparkle();
 
         if (animate) {
-            // small celebratory sparkle burst on toggle
             const burstX = themeBtn ? themeBtn.getBoundingClientRect().left + 40 : window.innerWidth / 2;
             const burstY = themeBtn ? themeBtn.getBoundingClientRect().top + 14  : window.innerHeight / 2;
             window.dispatchEvent(new CustomEvent("xa-burst", { detail: { x: burstX, y: burstY, count: 18 } }));
         }
     };
 
-    // initial sparkle read (theme was set pre-paint in <head>)
+    // initial sparkle read (theme was set server-side in <html data-theme>)
     readSparkle();
 
     if (themeBtn) {
@@ -40,6 +41,13 @@
             applyTheme(next, true);
         });
     }
+
+    // cross-tab sync: if another tab toggles, follow along
+    window.addEventListener("storage", (e) => {
+        if (e.key === THEME_KEY && e.newValue && e.newValue !== root.getAttribute("data-theme")) {
+            applyTheme(e.newValue, false);
+        }
+    });
 
     /* ---------- NOISE CANVAS ---------- */
     const noise = document.getElementById("fx-noise");

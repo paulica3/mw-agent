@@ -1,20 +1,31 @@
 @{
     var page = ViewContext.RouteData.Values["page"]?.ToString() ?? "";
     var bodyClass = page.Replace("/", "").ToLowerInvariant();
+
+    var theme = Context.Request.Cookies["xa-theme"];
+    if (theme != "bloom" && theme != "chaos") theme = "chaos";
+    var themeColor = theme == "bloom" ? "#f1e9da" : "#050505";
 }
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="@theme">
 <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
-    <meta name="theme-color" content="#050505" id="themeColorMeta"/>
+    <meta name="theme-color" content="@themeColor" id="themeColorMeta"/>
+    <link rel="icon" type="image/svg+xml" href="~/favicon.svg" asp-append-version="true"/>
+    <link rel="alternate icon" href="~/favicon.svg"/>
+    <link rel="apple-touch-icon" href="~/favicon.svg"/>
     <title>@ViewData["Title"] // XPERIMENT_AI</title>
     <script>
-        // pre-paint theme to avoid flash
+        // belt-and-suspenders: if cookie missing but localStorage has theme, sync it
         (function(){
             try {
-                var t = localStorage.getItem('xa-theme') || 'chaos';
-                document.documentElement.setAttribute('data-theme', t);
+                var stored = localStorage.getItem('xa-theme');
+                var current = document.documentElement.getAttribute('data-theme');
+                if (stored && stored !== current && (stored === 'bloom' || stored === 'chaos')) {
+                    document.documentElement.setAttribute('data-theme', stored);
+                    document.cookie = 'xa-theme=' + stored + '; path=/; max-age=31536000; samesite=lax';
+                }
             } catch(e) {}
         })();
     </script>
@@ -77,7 +88,7 @@
 
 <footer class="footer">
     <div class="footer-row">
-        <span class="footer-text footer-text--chaos">// XPERIMENT_AI v0.1 — A_GREAT_CHAOS_BUILD</span>
+        <span class="footer-text footer-text--chaos">// XPERIMENT_AI v0.1</span>
         <span class="footer-text footer-text--bloom">xperiment.ai · made for the mood</span>
         <span class="footer-blink">█</span>
         <span class="footer-text footer-text--chaos">@DateTime.UtcNow.Year — ALL SIGNALS DISTORTED</span>
