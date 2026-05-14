@@ -8,7 +8,10 @@
       "Bash(curl.exe -s -H \"Cookie: xa-theme=bloom\" http://localhost:5169/Image)",
       "Bash(curl.exe -s http://localhost:5169/)",
       "Bash(curl.exe -s -H \"Cookie: xa-theme=chaos\" http://localhost:5169/Video)",
-      "Bash(curl.exe -s -H \"Cookie: xa-theme=bloom\" http://localhost:5169/Video)"
+      "Bash(curl.exe -s -H \"Cookie: xa-theme=bloom\" http://localhost:5169/Video)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)"
     ]
   }
 }
