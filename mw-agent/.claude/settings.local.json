@@ -11,7 +11,10 @@
       "Bash(curl.exe -s -H \"Cookie: xa-theme=bloom\" http://localhost:5169/Video)",
       "Bash(git add *)",
       "Bash(git commit -m ' *)",
-      "Bash(git push *)"
+      "Bash(git push *)",
+      "Bash(ls -la .github/workflows/)",
+      "Bash(ls -la scripts/)",
+      "Bash(ls -la .github/)"
     ]
   }
 }
