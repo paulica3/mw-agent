@@ -49,6 +49,35 @@
         }
     });
 
+    /* ---------- AUTO-HIDE NAV ----------
+       nav is visible only when:
+         - near the top of the page (first 80px of scroll)
+         - cursor is in the top hover zone of the viewport
+         - cursor is over the nav itself
+       any other state → hide                                       */
+    const navEl = document.querySelector(".nav");
+    if (navEl) {
+        const SHOW_AT_TOP = 80;     // px from page top where nav is always shown
+        const HOVER_ZONE  = 72;     // px from viewport top that re-shows nav
+        let hovering = false;
+        let nearTop = true;         // assume cursor near top on load until proven otherwise
+
+        const update = () => {
+            const aboveThreshold = window.scrollY < SHOW_AT_TOP;
+            const shouldShow = aboveThreshold || hovering || nearTop;
+            navEl.classList.toggle("nav--hidden", !shouldShow);
+        };
+
+        window.addEventListener("scroll", update, { passive: true });
+        window.addEventListener("mousemove", (e) => {
+            const wasNear = nearTop;
+            nearTop = e.clientY < HOVER_ZONE;
+            if (wasNear !== nearTop) update();
+        }, { passive: true });
+        navEl.addEventListener("mouseenter", () => { hovering = true;  update(); });
+        navEl.addEventListener("mouseleave", () => { hovering = false; update(); });
+    }
+
     /* ---------- NOISE CANVAS ---------- */
     const noise = document.getElementById("fx-noise");
     if (noise) {
