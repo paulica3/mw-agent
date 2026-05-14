@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "xperiment",
+      "runtimeExecutable": "dotnet",
+      "runtimeArgs": ["run", "--project", "mw-agent.csproj", "--launch-profile", "http"],
+      "port": 5169
+    }
+  ]
+}

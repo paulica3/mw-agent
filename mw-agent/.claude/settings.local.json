@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "PowerShell(Get-ChildItem \"C:\\\\Users\\\\paolo\\\\repos\\\\mw-agent\\\\\" -Force | ForEach-Object { \"$\\($_.Attributes\\) $\\($_.Name\\)\" })",
-      "PowerShell(dotnet build \"C:\\\\Users\\\\paolo\\\\repos\\\\mw-agent\\\\mw-agent\\\\mw-agent.csproj\" --nologo 2>&1)"
+      "PowerShell(dotnet build \"C:\\\\Users\\\\paolo\\\\repos\\\\mw-agent\\\\mw-agent\\\\mw-agent.csproj\" --nologo 2>&1)",
+      "mcp__Claude_Preview__preview_start",
+      "PowerShell(try { $r = Invoke-WebRequest -Uri \"http://localhost:5169/\" -MaximumRedirection 0 -ErrorAction Stop; $r.StatusCode } catch { $_.Exception.Response.StatusCode.value__; $_.Exception.Response.Headers.Location })"
     ]
   }
 }

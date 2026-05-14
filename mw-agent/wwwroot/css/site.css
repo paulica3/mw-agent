@@ -753,15 +753,187 @@ body.cursor-hot .cursor-star svg {
 /* =============================================================
    RESPONSIVE
    ============================================================= */
+
+/* tablets / smaller laptops */
+@media (max-width: 1100px) {
+    .main { padding: 3rem 1.5rem 5rem; }
+    .hero-title { font-size: clamp(2.6rem, 10vw, 7rem); }
+    .gen-title { font-size: clamp(2rem, 6vw, 4rem); }
+    .portal { min-height: 320px; padding: 1.6rem; }
+    .portal-cta { right: 1.6rem; bottom: 1.4rem; }
+    .ticker-track { font-size: 1.2rem; }
+}
+
+/* tablet portrait + large phone — single column */
 @media (max-width: 900px) {
-    .nav { padding: 1rem; flex-wrap: wrap; gap: 0.8rem; }
+    .nav {
+        padding: 0.9rem 1rem;
+        flex-wrap: wrap;
+        gap: 0.6rem 1rem;
+    }
+    .nav-brand { font-size: 0.78rem; }
+    .nav-links { gap: 1rem; flex-wrap: wrap; }
+    .nav-link { font-size: 0.72rem; letter-spacing: 0.14em; }
     .nav-status { display: none; }
+
     .main { padding: 2rem 1rem 4rem; }
-    .portals { grid-template-columns: 1fr; }
-    .gen-grid { grid-template-columns: 1fr; }
-    .gen-foot { grid-template-columns: 1fr; }
+
+    .hero { padding-top: 1rem; }
+    .hero-meta {
+        font-size: 0.65rem;
+        gap: 0.5rem;
+        margin-bottom: 2rem;
+        letter-spacing: 0.14em;
+    }
+    .hero-title { font-size: clamp(2.4rem, 14vw, 5rem); line-height: 0.95; }
+    .hero-line--alt { font-size: clamp(1.6rem, 9vw, 3.4rem); padding-left: 0.4rem; }
+    .hero-sub { font-size: 1.3rem; margin-top: 1.6rem; }
+
+    .portals {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+        margin-top: 2.5rem;
+    }
+    .portal { min-height: 260px; padding: 1.4rem; }
+    .portal-title { font-size: clamp(1.8rem, 9vw, 2.6rem); }
+    .portal-sub { font-size: 1rem; }
+    .portal-art { height: 100px; margin-top: 1.4rem; }
+    .portal-cta {
+        font-size: 0.75rem;
+        right: 1.4rem;
+        bottom: 1.2rem;
+        letter-spacing: 0.22em;
+    }
+
+    .ticker { margin-top: 3rem; }
+    .ticker-track { font-size: 1.1rem; gap: 1.4rem; }
+
+    .gen-head { margin-bottom: 2rem; }
+    .gen-crumbs { font-size: 0.7rem; letter-spacing: 0.16em; }
+    .gen-title { font-size: clamp(1.8rem, 9vw, 3.2rem); }
+    .gen-lede { font-size: 1.15rem; margin-top: 0.7rem; }
+
+    .gen-grid { grid-template-columns: 1fr; gap: 0.9rem; }
+    .gen-panel { padding: 1.2rem 1rem 1.3rem; }
+    .panel-bar { gap: 0.6rem; margin-bottom: 1rem; padding-bottom: 0.6rem; }
+    .panel-name { font-size: 0.78rem; letter-spacing: 0.14em; }
+    .panel-hint { font-size: 0.62rem; letter-spacing: 0.14em; }
+
+    .chip {
+        padding: 0.6rem 0.8rem;
+        font-size: 0.7rem;
+        letter-spacing: 0.14em;
+    }
+
+    .dropzone { padding: 1.6rem 1rem; }
+    .drop-cross { font-size: 1.6rem; margin-bottom: 0.5rem; }
+    .drop-text { font-size: 0.78rem; letter-spacing: 0.22em; }
+    .drop-sub { font-size: 0.68rem; }
+
+    .director { font-size: 0.85rem; padding: 0.8rem; min-height: 90px; }
+
+    .gen-foot {
+        grid-template-columns: 1fr;
+        gap: 0.9rem;
+        margin-top: 1.4rem;
+    }
+    .readout-body { font-size: 1.05rem; }
+    .generate {
+        width: 100%;
+        min-width: 0;
+        padding: 1rem 1.4rem;
+        font-size: 0.85rem;
+    }
+
+    .footer { padding: 0.9rem 1rem; }
+    .footer-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+        font-size: 0.65rem;
+        letter-spacing: 0.12em;
+    }
+    .footer-blink { display: none; }
+
+    /* cursor → native on touch / small screens */
     html, body { cursor: auto; }
-    button, a, .dropzone, .director { cursor: pointer; }
+    button, a, .chip, .dropzone, .portal, .generate { cursor: pointer; }
     .director { cursor: text; }
     .cursor-star, .sparkle-trail { display: none; }
+}
+
+/* narrow phones — Press Start 2P is a WIDE bitmap font, scale aggressively */
+@media (max-width: 480px) {
+    .nav { padding: 0.75rem 0.75rem; }
+    .nav-brand { font-size: 0.62rem; letter-spacing: 0; }
+    .nav-link { font-size: 0.6rem; padding: 0.1rem 0; letter-spacing: 0.1em; }
+    .nav-links { gap: 0.6rem; }
+
+    .main { padding: 1.4rem 0.75rem 3rem; }
+
+    .hero-meta { font-size: 0.56rem; gap: 0.4rem; }
+    .hero-meta .meta-sep { display: none; }
+    .hero-title {
+        font-size: clamp(1.4rem, 8.5vw, 2.6rem);
+        letter-spacing: -0.03em;
+        overflow-wrap: anywhere;
+    }
+    .hero-line--alt { font-size: clamp(1rem, 6vw, 1.8rem); padding-left: 0.3rem; }
+    .hero-sub { font-size: 1rem; margin-top: 1.3rem; }
+
+    .portal { padding: 1.1rem; min-height: 220px; }
+    .portal-tag { font-size: 0.58rem; letter-spacing: 0.22em; }
+    .portal-title { font-size: clamp(1.2rem, 8vw, 1.8rem); }
+    .portal-sub { font-size: 0.88rem; }
+    .portal-art { height: 70px; margin-top: 1rem; }
+    .portal-cta { font-size: 0.68rem; right: 1.1rem; bottom: 1rem; }
+
+    .ticker-track { font-size: 0.95rem; }
+
+    .gen-title {
+        font-size: clamp(1.2rem, 7vw, 2rem);
+        letter-spacing: -0.02em;
+        overflow-wrap: anywhere;
+    }
+    .gen-lede { font-size: 1rem; }
+    .gen-crumbs { font-size: 0.62rem; }
+
+    .gen-panel { padding: 1rem 0.85rem 1.1rem; }
+    .panel-bar { flex-wrap: wrap; padding-bottom: 0.5rem; }
+    .panel-tag { font-size: 0.6rem; }
+    .panel-name { font-size: 0.72rem; }
+    .panel-hint { width: 100%; margin-left: 0; margin-top: 0.2rem; font-size: 0.58rem; }
+
+    .chip { padding: 0.5rem 0.65rem; font-size: 0.62rem; letter-spacing: 0.1em; }
+    .chip--swatch .sw { width: 10px; height: 10px; }
+
+    .readout-body { font-size: 0.92rem; }
+    .generate { font-size: 0.72rem; padding: 0.9rem 1rem; letter-spacing: 0.1em; }
+    .gen-arrow { font-size: 0.95rem; }
+}
+
+/* short viewports — keep hero usable */
+@media (max-height: 620px) and (min-width: 900px) {
+    .main { padding: 2rem 2rem 3rem; }
+    .hero { padding-top: 0; }
+    .hero-meta { margin-bottom: 1.5rem; }
+    .portals { margin-top: 2rem; }
+    .portal { min-height: 280px; }
+}
+
+/* coarse pointer / touch — always hide custom cursor */
+@media (pointer: coarse) {
+    html, body { cursor: auto; }
+    button, a, .chip, .dropzone, .portal, .generate { cursor: pointer; }
+    .director { cursor: text; }
+    .cursor-star, .sparkle-trail { display: none; }
+}
+
+/* reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
 }
