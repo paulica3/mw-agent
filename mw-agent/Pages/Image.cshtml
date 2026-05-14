@@ -1,0 +1,109 @@
+@page
+@model ImageModel
+@{
+    ViewData["Title"] = "IMAGE_GEN";
+}
+
+<section class="gen">
+    <div class="gen-head">
+        <div class="gen-crumbs">/ HOME / <span class="hl">IMAGE_GEN</span></div>
+        <h1 class="gen-title glitch" data-text="IMAGE_SYNTH">IMAGE_SYNTH</h1>
+        <p class="gen-lede">pick a vibe. stack the chaos. press generate.</p>
+    </div>
+
+    <div class="gen-grid">
+        <div class="gen-panel">
+            <div class="panel-bar">
+                <span class="panel-tag">01</span>
+                <span class="panel-name">// THEME</span>
+                <span class="panel-hint">choose one</span>
+            </div>
+            <div class="chip-grid" data-group="theme">
+                <button class="chip" data-value="futuristic"><span>FUTURISTIC</span></button>
+                <button class="chip" data-value="surreal"><span>SURREAL</span></button>
+                <button class="chip" data-value="gritty"><span>GRITTY</span></button>
+                <button class="chip" data-value="dreamlike"><span>DREAMLIKE</span></button>
+                <button class="chip" data-value="retro"><span>RETRO</span></button>
+                <button class="chip" data-value="classic"><span>CLASSIC</span></button>
+            </div>
+        </div>
+
+        <div class="gen-panel">
+            <div class="panel-bar">
+                <span class="panel-tag">02</span>
+                <span class="panel-name">// MOOD</span>
+                <span class="panel-hint">energy of the frame</span>
+            </div>
+            <div class="chip-grid" data-group="mood">
+                <button class="chip" data-value="dark">DARK_&_TENSE</button>
+                <button class="chip" data-value="euphoric">EUPHORIC</button>
+                <button class="chip" data-value="melancholic">MELANCHOLIC</button>
+                <button class="chip" data-value="chaotic">CHAOTIC</button>
+            </div>
+        </div>
+
+        <div class="gen-panel">
+            <div class="panel-bar">
+                <span class="panel-tag">03</span>
+                <span class="panel-name">// CAMERA</span>
+                <span class="panel-hint">point of view</span>
+            </div>
+            <div class="chip-grid" data-group="camera">
+                <button class="chip" data-value="wide">WIDE_CINEMATIC</button>
+                <button class="chip" data-value="close">CLOSE_UP_RAW</button>
+                <button class="chip" data-value="drone">DRONE</button>
+                <button class="chip" data-value="slow_motion">SLOW_MOTION</button>
+            </div>
+        </div>
+
+        <div class="gen-panel">
+            <div class="panel-bar">
+                <span class="panel-tag">04</span>
+                <span class="panel-name">// COLOR_GRADE</span>
+                <span class="panel-hint">paint the chaos</span>
+            </div>
+            <div class="chip-grid" data-group="color">
+                <button class="chip chip--swatch" data-value="cold_blue"><span class="sw sw-cold"></span>COLD_BLUE</button>
+                <button class="chip chip--swatch" data-value="warm_golden"><span class="sw sw-warm"></span>WARM_GOLDEN</button>
+                <button class="chip chip--swatch" data-value="desaturated"><span class="sw sw-desat"></span>DESATURATED</button>
+                <button class="chip chip--swatch" data-value="high_contrast"><span class="sw sw-contrast"></span>HIGH_CONTRAST</button>
+            </div>
+        </div>
+
+        <div class="gen-panel gen-panel--wide">
+            <div class="panel-bar">
+                <span class="panel-tag">05</span>
+                <span class="panel-name">// REFERENCE_IMAGE</span>
+                <span class="panel-hint">optional. drop a frame.</span>
+            </div>
+            <label class="dropzone" for="refUpload">
+                <input id="refUpload" type="file" accept="image/*" hidden>
+                <div class="dropzone-inner">
+                    <div class="drop-cross">+</div>
+                    <div class="drop-text">DRAG &middot; CLICK &middot; PASTE</div>
+                    <div class="drop-sub" id="dropSub">no reference loaded</div>
+                </div>
+            </label>
+        </div>
+
+        <div class="gen-panel gen-panel--wide">
+            <div class="panel-bar">
+                <span class="panel-tag">06</span>
+                <span class="panel-name">// DIRECTOR_NOTES</span>
+                <span class="panel-hint">optional. one line of intent.</span>
+            </div>
+            <textarea class="director" placeholder="> lone figure standing in a flooded city..."></textarea>
+        </div>
+    </div>
+
+    <div class="gen-foot">
+        <div class="prompt-readout">
+            <span class="readout-label">// ASSEMBLED_SIGNAL</span>
+            <div class="readout-body" id="promptReadout">— awaiting input —</div>
+        </div>
+        <button class="generate" id="generateBtn">
+            <span class="gen-label">GENERATE</span>
+            <span class="gen-arrow">»</span>
+        </button>
+    </div>
+</section>

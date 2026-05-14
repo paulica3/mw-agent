@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\paolo\\\\repos\\\\mw-agent\\\\\" -Force | ForEach-Object { \"$\\($_.Attributes\\) $\\($_.Name\\)\" })"
+      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\paolo\\\\repos\\\\mw-agent\\\\\" -Force | ForEach-Object { \"$\\($_.Attributes\\) $\\($_.Name\\)\" })",
+      "PowerShell(dotnet build \"C:\\\\Users\\\\paolo\\\\repos\\\\mw-agent\\\\mw-agent\\\\mw-agent.csproj\" --nologo 2>&1)"
     ]
   }
 }

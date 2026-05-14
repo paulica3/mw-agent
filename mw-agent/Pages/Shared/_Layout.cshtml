@@ -1,52 +1,61 @@
-﻿<!DOCTYPE html>
+@{
+    var page = ViewContext.RouteData.Values["page"]?.ToString() ?? "";
+    var bodyClass = page.Replace("/", "").ToLowerInvariant();
+}
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>@ViewData["Title"] - mw-agent</title>
-    <script type="importmap"></script>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css"/>
+    <title>@ViewData["Title"] // XPERIMENT_AI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&family=Space+Mono:wght@400;700&family=Press+Start+2P&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true"/>
-    <link rel="stylesheet" href="~/mw-agent.styles.css" asp-append-version="true"/>
 </head>
-<body>
-<header>
-    <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-        <div class="container">
-            <a class="navbar-brand" asp-area="" asp-page="/Index">mw-agent</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                    aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                <ul class="navbar-nav flex-grow-1">
-                    <li class="nav-item">
-                        <a class="nav-link text-dark" asp-area="" asp-page="/Index">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-dark" asp-area="" asp-page="/Privacy">Privacy</a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
-</header>
-<div class="container">
-    <main role="main" class="pb-3">
-        @RenderBody()
-    </main>
+<body class="page-@bodyClass">
+
+<div class="fx-layer fx-grid"></div>
+<canvas id="fx-noise" class="fx-layer fx-noise"></canvas>
+<div class="fx-layer fx-scanlines"></div>
+<div class="fx-layer fx-vignette"></div>
+
+<canvas id="sparkle-trail" class="sparkle-trail"></canvas>
+<div class="cursor-star" id="cursorStar">
+    <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M16 0 L17.8 14.2 L32 16 L17.8 17.8 L16 32 L14.2 17.8 L0 16 L14.2 14.2 Z" fill="white"/>
+        <path d="M16 6 L16.9 14.8 L26 16 L16.9 17.2 L16 26 L15.1 17.2 L6 16 L15.1 14.8 Z" fill="rgba(0,0,0,0.5)"/>
+    </svg>
 </div>
 
-<footer class="border-top footer text-muted">
-    <div class="container">
-        &copy; 2026 - mw-agent - <a asp-area="" asp-page="/Privacy">Privacy</a>
+<header class="nav">
+    <a class="nav-brand glitch" data-text="XPERIMENT_AI" asp-page="/Index">
+        <span>XPERIMENT</span><span class="nav-brand-accent">_AI</span>
+    </a>
+    <nav class="nav-links">
+        <a asp-page="/Index" class="nav-link">[ HOME ]</a>
+        <a asp-page="/Image" class="nav-link">[ IMAGE ]</a>
+        <a asp-page="/Video" class="nav-link">[ VIDEO ]</a>
+    </nav>
+    <div class="nav-status">
+        <span class="status-dot"></span>
+        <span class="status-text" id="navClock">SYS.ONLINE</span>
+    </div>
+</header>
+
+<main class="main">
+    @RenderBody()
+</main>
+
+<footer class="footer">
+    <div class="footer-row">
+        <span>// XPERIMENT_AI v0.1 — A_GREAT_CHAOS_BUILD</span>
+        <span class="footer-blink">█</span>
+        <span>@DateTime.UtcNow.Year — ALL SIGNALS DISTORTED</span>
     </div>
 </footer>
 
-<script src="~/lib/jquery/dist/jquery.min.js"></script>
-<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 <script src="~/js/site.js" asp-append-version="true"></script>
-
 @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
