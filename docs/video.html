@@ -9,6 +9,7 @@
     <link rel="apple-touch-icon" href="favicon.svg"/>
     <title>VIDEO_GEN // XPERIMENT_AI</title>
     <script>
+        // pre-paint theme sync from localStorage (avoids FOUC)
         (function(){
             try {
                 var stored = localStorage.getItem('xa-theme');
@@ -74,7 +75,7 @@
 </header>
 
 <main class="main">
-<section class="gen">
+    <section class="gen">
     <div class="gen-head">
         <div class="gen-crumbs">/ <a href="index.html">HOME</a> / <span class="hl">VIDEO_GEN</span></div>
         <h1 class="gen-title glitch" data-text="VIDEO_SYNTH">VIDEO_SYNTH</h1>
@@ -121,7 +122,7 @@
                 <span class="panel-hint">energy curve</span>
             </div>
             <div class="chip-grid" data-group="mood">
-                <button class="chip" data-value="dark">DARK_&amp;_TENSE</button>
+                <button class="chip" data-value="dark">DARK_&_TENSE</button>
                 <button class="chip" data-value="euphoric">EUPHORIC</button>
                 <button class="chip" data-value="melancholic">MELANCHOLIC</button>
                 <button class="chip" data-value="chaotic">CHAOTIC</button>
@@ -179,6 +180,7 @@
         </button>
     </div>
 </section>
+
 </main>
 
 <footer class="footer">
