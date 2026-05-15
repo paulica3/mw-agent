@@ -723,25 +723,187 @@
         });
     }
 
-    /* ---------- GENERATE BUTTON ---------- */
+    /* ---------- GENERATION MODAL ----------
+       opens when GENERATE/RENDER is clicked. drives the call to /api/generate
+       then polls /api/status until the video is ready or fails.              */
+    const modal       = document.getElementById("genModal");
+    const modalStatus = document.getElementById("genModalStatus");
+    const modalTimer  = document.getElementById("genModalTimer");
+    const modalPrompt = document.getElementById("genModalPrompt");
+    const modalResult = document.getElementById("genModalResult");
+    const modalDL     = document.getElementById("genModalDownload");
+    const modalError  = document.getElementById("genModalError");
+
+    let activePollId = null;
+    let activeTimerId = null;
+    let modalStartedAt = 0;
+
+    const setPane = (which) => {
+        if (!modal) return;
+        modal.querySelectorAll(".gen-modal-pane").forEach((p) => {
+            p.hidden = (p.dataset.pane !== which);
+        });
+    };
+
+    const openModal = (initialPane = "loading") => {
+        if (!modal) return;
+        modal.hidden = false;
+        setPane(initialPane);
+        document.body.style.overflow = "hidden";
+    };
+
+    const closeModal = () => {
+        if (!modal) return;
+        modal.hidden = true;
+        document.body.style.overflow = "";
+        if (activePollId) { clearTimeout(activePollId); activePollId = null; }
+        if (activeTimerId) { clearInterval(activeTimerId); activeTimerId = null; }
+    };
+
+    if (modal) {
+        modal.addEventListener("click", (e) => {
+            if (e.target.closest("[data-close-modal]")) closeModal();
+        });
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape" && !modal.hidden) closeModal();
+        });
+    }
+
+    const formatTimer = (ms) => {
+        const s = Math.floor(ms / 1000);
+        return `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
+    };
+
+    const startTimer = () => {
+        modalStartedAt = Date.now();
+        if (modalTimer) modalTimer.textContent = "00:00";
+        activeTimerId = setInterval(() => {
+            if (modalTimer) modalTimer.textContent = formatTimer(Date.now() - modalStartedAt);
+        }, 500);
+    };
+
+    /* ---------- BUILD THE GENERATION REQUEST ----------
+       reads the current chip selections + director note + uploaded file. */
+    const buildPrompt = () => readout?.textContent && readout.textContent !== "— awaiting input —"
+        ? readout.textContent
+        : "";
+
+    const readFileAsDataURL = (file) => new Promise((resolve, reject) => {
+        const r = new FileReader();
+        r.onload = () => resolve(r.result);
+        r.onerror = reject;
+        r.readAsDataURL(file);
+    });
+
+    const collectRequest = async () => {
+        const prompt = buildPrompt();
+        const fileInput = document.getElementById("refUpload");
+        const file = fileInput?.files?.[0];
+        const req = {
+            prompt,
+            duration: selections.duration || "5",
+            page: PAGE,
+        };
+        if (file) {
+            // 4MB ceiling so we stay under vercel's 4.5MB body limit with overhead
+            if (file.size > 4 * 1024 * 1024) {
+                throw new Error("reference file too large — max 4MB on free tier");
+            }
+            req.reference = await readFileAsDataURL(file);
+            req.referenceType = file.type.startsWith("video/") ? "video" : "image";
+        }
+        return req;
+    };
+
+    /* ---------- POLL /api/status UNTIL DONE ---------- */
+    const POLL_INTERVAL = 5000;
+    const MAX_WAIT_MS   = 5 * 60 * 1000;  // 5 minutes
+
+    const pollStatus = (taskId, kind, startedAt) => {
+        if (Date.now() - startedAt > MAX_WAIT_MS) {
+            modalError.textContent = "render timed out after 5 minutes — try again";
+            setPane("error");
+            if (activeTimerId) { clearInterval(activeTimerId); activeTimerId = null; }
+            return;
+        }
+        fetch(`/api/status?id=${encodeURIComponent(taskId)}&kind=${encodeURIComponent(kind)}`)
+            .then((r) => r.json())
+            .then((data) => {
+                if (data.error) {
+                    modalError.textContent = data.error;
+                    setPane("error");
+                    if (activeTimerId) { clearInterval(activeTimerId); activeTimerId = null; }
+                    return;
+                }
+                if (data.status === "succeeded" && data.videoUrl) {
+                    if (activeTimerId) { clearInterval(activeTimerId); activeTimerId = null; }
+                    modalResult.innerHTML = `<video src="${data.videoUrl}" controls autoplay loop playsinline></video>`;
+                    modalDL.href = data.videoUrl;
+                    modalDL.download = `xperiment_${taskId}.mp4`;
+                    setPane("success");
+                    return;
+                }
+                if (data.status === "failed") {
+                    modalError.textContent = data.message || "kling rejected the render";
+                    setPane("error");
+                    if (activeTimerId) { clearInterval(activeTimerId); activeTimerId = null; }
+                    return;
+                }
+                // still processing — update status text, keep polling
+                if (modalStatus) modalStatus.textContent = `// ${data.message || "rendering..."}`;
+                activePollId = setTimeout(() => pollStatus(taskId, kind, startedAt), POLL_INTERVAL);
+            })
+            .catch((err) => {
+                modalError.textContent = `polling failed: ${err.message}`;
+                setPane("error");
+                if (activeTimerId) { clearInterval(activeTimerId); activeTimerId = null; }
+            });
+    };
+
+    /* ---------- WIRE THE GENERATE BUTTON ---------- */
     const genBtn = document.getElementById("generateBtn");
     if (genBtn) {
-        genBtn.addEventListener("click", () => {
-            const label = genBtn.querySelector(".gen-label");
-            if (!label) return;
-            const original = label.textContent;
-            const chars = "▓▒░█▌▐■□◆◇";
-            let i = 0;
-            const id = setInterval(() => {
-                label.textContent = Array.from({ length: original.length }, () =>
-                    chars[Math.floor(Math.random() * chars.length)]
-                ).join("");
-                if (++i > 14) {
-                    clearInterval(id);
-                    label.textContent = "SIGNAL_SENT";
-                    setTimeout(() => { label.textContent = original; }, 1400);
+        genBtn.addEventListener("click", async () => {
+            // image page isn't wired to a backend yet
+            if (PAGE === "image") {
+                openModal("comingSoon");
+                return;
+            }
+
+            // need at least one selection or a director note
+            const prompt = buildPrompt();
+            if (!prompt) {
+                openModal("error");
+                modalError.textContent = "pick at least one chip or write a director note";
+                return;
+            }
+
+            openModal("loading");
+            if (modalPrompt) modalPrompt.textContent = prompt;
+            if (modalStatus) modalStatus.textContent = "// uploading signal to kling...";
+            startTimer();
+
+            try {
+                const body = await collectRequest();
+                const r = await fetch("/api/generate", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(body),
+                });
+                const data = await r.json();
+                if (!r.ok || data.error) {
+                    modalError.textContent = data.error || `server returned ${r.status}`;
+                    setPane("error");
+                    if (activeTimerId) { clearInterval(activeTimerId); activeTimerId = null; }
+                    return;
                 }
-            }, 55);
+                if (modalStatus) modalStatus.textContent = "// task accepted. waiting for frames...";
+                pollStatus(data.taskId, data.kind || "text2video", Date.now());
+            } catch (err) {
+                modalError.textContent = err.message || "request failed";
+                setPane("error");
+                if (activeTimerId) { clearInterval(activeTimerId); activeTimerId = null; }
+            }
         });
     }
 })();

@@ -1516,6 +1516,248 @@ body.cursor-hot .cursor-star svg {
 }
 
 /* =============================================================
+   GENERATION MODAL — overlay for rendering progress + result
+   ============================================================= */
+.gen-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 9000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    cursor: none;
+}
+.gen-modal[hidden] { display: none; }
+
+.gen-modal-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.78);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    animation: modalFade 0.3s ease-out;
+}
+@keyframes modalFade { from { opacity: 0; } to { opacity: 1; } }
+
+.gen-modal-card {
+    position: relative;
+    width: 100%;
+    max-width: 720px;
+    max-height: 90vh;
+    overflow: auto;
+    background: var(--bg-1);
+    border: 1px solid var(--line-2);
+    padding: 2rem 2rem 1.6rem;
+    animation: modalSlide 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow:
+        0 0 0 1px rgba(255,255,255,0.04),
+        0 30px 80px rgba(0,0,0,0.6),
+        0 0 60px rgba(255,255,255,0.04);
+}
+@keyframes modalSlide {
+    from { opacity: 0; transform: translateY(20px) scale(0.97); filter: blur(8px); }
+    to   { opacity: 1; transform: translateY(0)    scale(1);    filter: blur(0);   }
+}
+
+.gen-modal-close {
+    position: absolute;
+    top: 0.7rem;
+    right: 0.7rem;
+    width: 32px;
+    height: 32px;
+    font-family: var(--mono);
+    font-size: 1.4rem;
+    line-height: 1;
+    color: var(--ink-mute);
+    border: 1px solid var(--line);
+    transition: color 0.15s, border-color 0.15s, background-color 0.15s, transform 0.2s;
+}
+.gen-modal-close:hover {
+    color: var(--accent-hot);
+    border-color: var(--accent-hot);
+    background: rgba(255,255,255,0.06);
+    transform: rotate(90deg);
+}
+
+.gen-modal-pane[hidden] { display: none; }
+.gen-modal-title {
+    font-family: var(--pix);
+    font-size: clamp(1.1rem, 3.4vw, 1.6rem);
+    letter-spacing: 0.1em;
+    color: var(--ink);
+    margin-bottom: 1.4rem;
+    text-align: center;
+}
+
+/* loading state */
+.gen-modal-spinner {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin: 1.4rem 0 1.2rem;
+}
+.gen-modal-spinner span {
+    display: block;
+    width: 14px;
+    height: 14px;
+    background: var(--ink);
+    animation: spinnerPulse 1.4s ease-in-out infinite;
+}
+.gen-modal-spinner span:nth-child(2) { animation-delay: 0.2s; }
+.gen-modal-spinner span:nth-child(3) { animation-delay: 0.4s; }
+.gen-modal-spinner span:nth-child(4) { animation-delay: 0.6s; }
+@keyframes spinnerPulse {
+    0%, 100% { opacity: 0.2; transform: scale(0.7); }
+    50%      { opacity: 1;   transform: scale(1); }
+}
+
+.gen-modal-status {
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    letter-spacing: 0.12em;
+    color: var(--ink-dim);
+    text-align: center;
+    margin-bottom: 1rem;
+    min-height: 1.4em;
+}
+
+.gen-modal-meta {
+    display: flex;
+    justify-content: center;
+    gap: 1.4rem;
+    margin-bottom: 1.2rem;
+    flex-wrap: wrap;
+}
+.gen-modal-meta-row {
+    font-family: var(--mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.18em;
+    color: var(--ink-mute);
+}
+
+.gen-modal-prompt {
+    margin-top: 0.6rem;
+    padding: 0.8rem 1rem;
+    border: 1px dashed var(--line);
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    color: var(--ink-dim);
+    line-height: 1.55;
+    max-height: 8em;
+    overflow: auto;
+}
+
+/* success state */
+.gen-modal-result {
+    margin: 0.5rem 0 1.2rem;
+    background: #000;
+    border: 1px solid var(--line);
+    min-height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.gen-modal-result video,
+.gen-modal-result img {
+    display: block;
+    max-width: 100%;
+    max-height: 60vh;
+}
+.gen-modal-actions {
+    display: flex;
+    gap: 0.6rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+.gen-modal-btn {
+    font-family: var(--pix);
+    font-size: 0.7rem;
+    letter-spacing: 0.18em;
+    padding: 0.7rem 1.2rem;
+    border: 1px solid var(--ink);
+    background: var(--ink);
+    color: var(--bg);
+    cursor: none;
+    transition: background-color 0.15s, color 0.15s, transform 0.1s;
+}
+.gen-modal-btn:hover  { background: var(--accent-hot); border-color: var(--accent-hot); transform: translateY(-1px); }
+.gen-modal-btn:active { transform: translateY(0); }
+.gen-modal-secondary  { background: transparent; color: var(--ink); }
+.gen-modal-secondary:hover { background: var(--ink); color: var(--bg); }
+
+/* error state */
+.gen-modal-error {
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    letter-spacing: 0.06em;
+    color: #ff5577;
+    text-align: center;
+    margin-bottom: 1.4rem;
+    padding: 1rem;
+    border: 1px solid rgba(255,85,119,0.4);
+    background: rgba(255,85,119,0.05);
+}
+
+.gen-modal-coming {
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    letter-spacing: 0.04em;
+    color: var(--ink-dim);
+    text-align: center;
+    margin-bottom: 1.4rem;
+    line-height: 1.7;
+}
+
+/* responsive */
+@media (max-width: 600px) {
+    .gen-modal-card { padding: 1.4rem 1.2rem 1.2rem; max-height: 95vh; }
+    .gen-modal-title { font-size: 1rem; }
+    .gen-modal-prompt { font-size: 0.66rem; }
+    .gen-modal-btn { font-size: 0.62rem; padding: 0.6rem 1rem; }
+}
+
+/* bloom overrides */
+[data-theme="bloom"] .gen-modal-overlay { background: rgba(241, 233, 218, 0.82); }
+[data-theme="bloom"] .gen-modal-card {
+    background: rgba(255,255,255,0.96);
+    border-radius: 22px;
+    border-color: var(--line);
+    box-shadow: 0 30px 80px rgba(120, 90, 60, 0.18);
+}
+[data-theme="bloom"] .gen-modal-close { border-radius: 50%; }
+[data-theme="bloom"] .gen-modal-title {
+    font-family: var(--script);
+    font-size: clamp(2.2rem, 5vw, 3rem);
+    text-transform: lowercase;
+    letter-spacing: normal;
+}
+[data-theme="bloom"] .gen-modal-spinner span { background: var(--accent); border-radius: 50%; }
+[data-theme="bloom"] .gen-modal-status   { font-family: var(--sans); text-transform: lowercase; letter-spacing: 0.04em; }
+[data-theme="bloom"] .gen-modal-meta-row { font-family: var(--sans); text-transform: lowercase; letter-spacing: 0.06em; }
+[data-theme="bloom"] .gen-modal-prompt {
+    font-family: var(--sans);
+    text-transform: none;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.5);
+}
+[data-theme="bloom"] .gen-modal-btn {
+    font-family: var(--sans);
+    text-transform: lowercase;
+    letter-spacing: 0.04em;
+    border-radius: 999px;
+}
+[data-theme="bloom"] .gen-modal-coming { font-family: var(--sans); }
+[data-theme="bloom"] .gen-modal-error {
+    font-family: var(--sans);
+    border-radius: 12px;
+    color: #c4456a;
+    border-color: rgba(196,69,106,0.4);
+    background: rgba(196,69,106,0.06);
+}
+
+/* =============================================================
    DASHBOARD — chip customizer
    ============================================================= */
 

@@ -87,6 +87,50 @@
     @RenderBody()
 </main>
 
+<!-- generation modal — opens when user hits GENERATE/RENDER on image/video pages -->
+<div class="gen-modal" id="genModal" hidden>
+    <div class="gen-modal-overlay" data-close-modal></div>
+    <div class="gen-modal-card">
+        <button class="gen-modal-close" type="button" data-close-modal aria-label="Close">×</button>
+
+        <div class="gen-modal-pane" data-pane="loading">
+            <div class="gen-modal-title glitch" data-text="RENDERING_SIGNAL">RENDERING_SIGNAL</div>
+            <div class="gen-modal-spinner"><span></span><span></span><span></span><span></span></div>
+            <div class="gen-modal-status" id="genModalStatus">// initializing pipeline...</div>
+            <div class="gen-modal-meta">
+                <span class="gen-modal-meta-row">elapsed: <span id="genModalTimer">00:00</span></span>
+                <span class="gen-modal-meta-row">est: 60-120s</span>
+            </div>
+            <div class="gen-modal-prompt" id="genModalPrompt"></div>
+        </div>
+
+        <div class="gen-modal-pane" data-pane="success" hidden>
+            <div class="gen-modal-title glitch" data-text="SIGNAL_COMPLETE">SIGNAL_COMPLETE</div>
+            <div class="gen-modal-result" id="genModalResult"></div>
+            <div class="gen-modal-actions">
+                <a class="gen-modal-btn gen-modal-download" id="genModalDownload" download target="_blank" rel="noopener">download</a>
+                <button class="gen-modal-btn gen-modal-secondary" type="button" data-close-modal>close</button>
+            </div>
+        </div>
+
+        <div class="gen-modal-pane" data-pane="error" hidden>
+            <div class="gen-modal-title">SIGNAL_LOST</div>
+            <div class="gen-modal-error" id="genModalError">connection failure</div>
+            <div class="gen-modal-actions">
+                <button class="gen-modal-btn gen-modal-secondary" type="button" data-close-modal>close</button>
+            </div>
+        </div>
+
+        <div class="gen-modal-pane" data-pane="comingSoon" hidden>
+            <div class="gen-modal-title">NOT_YET_WIRED</div>
+            <div class="gen-modal-coming">image generation is not connected to a backend yet.<br/>video generation works — try the video tab.</div>
+            <div class="gen-modal-actions">
+                <button class="gen-modal-btn gen-modal-secondary" type="button" data-close-modal>close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <footer class="footer">
     <div class="footer-row">
         <span class="footer-text footer-text--chaos">// XPERIMENT_AI v0.1</span>
