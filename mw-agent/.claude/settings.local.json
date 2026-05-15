@@ -14,7 +14,9 @@
       "Bash(git push *)",
       "Bash(ls -la .github/workflows/)",
       "Bash(ls -la scripts/)",
-      "Bash(ls -la .github/)"
+      "Bash(ls -la .github/)",
+      "Bash(grep -i \"\\\\.cs$\\\\|index\\\\|image\\\\|video\\\\|dashboard\")",
+      "Bash(python scripts/build-docs.py)"
     ]
   }
 }

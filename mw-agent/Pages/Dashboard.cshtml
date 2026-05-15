@@ -1,0 +1,77 @@
+@page
+@model DashboardModel
+@{
+    ViewData["Title"] = "DASHBOARD";
+}
+
+<section class="gen dashboard">
+    <div class="gen-head">
+        <div class="gen-crumbs">/ <a asp-page="/Index">HOME</a> / <span class="hl">DASHBOARD</span></div>
+        <h1 class="gen-title glitch" data-text="CUSTOMIZE_SIGNAL">CUSTOMIZE_SIGNAL</h1>
+        <p class="gen-lede">tune the chip menu. add what you actually use. drop what you don't.</p>
+    </div>
+
+    <div class="dash-grid">
+
+        <div class="dash-panel gen-panel" data-group="theme">
+            <div class="panel-bar">
+                <span class="panel-tag">01</span>
+                <span class="panel-name">// THEME</span>
+                <button class="dash-reset" type="button">reset</button>
+            </div>
+            <div class="dash-chips"></div>
+            <form class="dash-add">
+                <input name="label"    type="text" placeholder="LABEL  (e.g. CYBERPUNK)" maxlength="32" required/>
+                <input name="fragment" type="text" placeholder="prompt fragment  (e.g. neon cyberpunk megacity, rainslick streets)" maxlength="200" required/>
+                <button class="dash-add-btn" type="submit"><span>+ add</span></button>
+            </form>
+        </div>
+
+        <div class="dash-panel gen-panel" data-group="mood">
+            <div class="panel-bar">
+                <span class="panel-tag">02</span>
+                <span class="panel-name">// MOOD</span>
+                <button class="dash-reset" type="button">reset</button>
+            </div>
+            <div class="dash-chips"></div>
+            <form class="dash-add">
+                <input name="label"    type="text" placeholder="LABEL  (e.g. HOPEFUL)" maxlength="32" required/>
+                <input name="fragment" type="text" placeholder="prompt fragment  (e.g. hopeful uplifting tone)" maxlength="200" required/>
+                <button class="dash-add-btn" type="submit"><span>+ add</span></button>
+            </form>
+        </div>
+
+        <div class="dash-panel gen-panel" data-group="camera">
+            <div class="panel-bar">
+                <span class="panel-tag">03</span>
+                <span class="panel-name">// CAMERA</span>
+                <button class="dash-reset" type="button">reset</button>
+            </div>
+            <div class="dash-chips"></div>
+            <form class="dash-add">
+                <input name="label"    type="text" placeholder="LABEL  (e.g. MACRO)" maxlength="32" required/>
+                <input name="fragment" type="text" placeholder="prompt fragment  (e.g. extreme macro lens, microscopic detail)" maxlength="200" required/>
+                <button class="dash-add-btn" type="submit"><span>+ add</span></button>
+            </form>
+        </div>
+
+        <div class="dash-panel gen-panel" data-group="motion">
+            <div class="panel-bar">
+                <span class="panel-tag">04</span>
+                <span class="panel-name">// MOTION</span>
+                <button class="dash-reset" type="button">reset</button>
+            </div>
+            <div class="dash-chips"></div>
+            <form class="dash-add">
+                <input name="label"    type="text" placeholder="LABEL  (e.g. WHIP_PAN)" maxlength="32" required/>
+                <input name="fragment" type="text" placeholder="prompt fragment  (e.g. fast whip pan transition)" maxlength="200" required/>
+                <button class="dash-add-btn" type="submit"><span>+ add</span></button>
+            </form>
+        </div>
+
+    </div>
+
+    <div class="dash-footer">
+        <span class="dash-foot-note">// saved locally on this device · clear browser data to reset</span>
+    </div>
+</section>

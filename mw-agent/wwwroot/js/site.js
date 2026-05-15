@@ -301,60 +301,105 @@
         }
     }, 2200);
 
-    /* ---------- CHIPS + PROMPT READOUT ---------- */
-    const FRAGMENTS = {
-        theme: {
-            futuristic: "cinematic futuristic aesthetic, holographic overlays, neon-lit",
-            surreal: "dreamlike surreal imagery, impossible geometry",
-            gritty: "raw gritty urban texture, harsh contrast",
-            dreamlike: "soft pastel dreamscape, hazy diffusion",
-            retro: "vintage analog film grain, warm faded tones",
-            classic: "timeless cinematic composition, rich shadows",
-        },
-        mood: {
-            dark: "dark & tense atmosphere",
-            euphoric: "euphoric high-energy mood",
-            melancholic: "melancholic introspective tone",
-            chaotic: "chaotic frantic energy",
-        },
-        camera: {
-            wide: "wide cinematic shot",
-            close: "intimate close-up, shallow depth",
-            drone: "aerial drone perspective",
-            slow_motion: "ultra slow motion",
-        },
-        motion: {
-            static: "static locked frame",
-            slow_pan: "slow lateral pan",
-            dolly: "dolly push toward subject",
-            orbit: "orbiting camera",
-            handheld: "handheld shaky cam",
-            warp: "reality-warping camera motion",
-        },
+    /* ---------- CHIP STORE ----------
+       chips for theme/mood/camera/motion are user-customizable via Dashboard
+       and persisted to localStorage. color/duration stay hardcoded in HTML
+       because they have special styling (swatches, numeric formatting).      */
+    const CHIP_STORE_KEY = "xa-chips";
+
+    const DEFAULT_CHIPS = {
+        theme: [
+            { value: "futuristic", label: "FUTURISTIC", fragment: "cinematic futuristic aesthetic, holographic overlays, neon-lit" },
+            { value: "surreal",    label: "SURREAL",    fragment: "dreamlike surreal imagery, impossible geometry" },
+            { value: "gritty",     label: "GRITTY",     fragment: "raw gritty urban texture, harsh contrast" },
+            { value: "dreamlike",  label: "DREAMLIKE",  fragment: "soft pastel dreamscape, hazy diffusion" },
+            { value: "retro",      label: "RETRO",      fragment: "vintage analog film grain, warm faded tones" },
+            { value: "classic",    label: "CLASSIC",    fragment: "timeless cinematic composition, rich shadows" },
+        ],
+        mood: [
+            { value: "dark",         label: "DARK_&_TENSE", fragment: "dark & tense atmosphere" },
+            { value: "euphoric",     label: "EUPHORIC",     fragment: "euphoric high-energy mood" },
+            { value: "melancholic",  label: "MELANCHOLIC",  fragment: "melancholic introspective tone" },
+            { value: "chaotic",      label: "CHAOTIC",      fragment: "chaotic frantic energy" },
+        ],
+        camera: [
+            { value: "wide",        label: "WIDE_CINEMATIC", fragment: "wide cinematic shot" },
+            { value: "close",       label: "CLOSE_UP_RAW",   fragment: "intimate close-up, shallow depth" },
+            { value: "drone",       label: "DRONE",          fragment: "aerial drone perspective" },
+            { value: "slow_motion", label: "SLOW_MOTION",    fragment: "ultra slow motion" },
+        ],
+        motion: [
+            { value: "static",   label: "STATIC_HOLD",   fragment: "static locked frame" },
+            { value: "slow_pan", label: "SLOW_PAN",      fragment: "slow lateral pan" },
+            { value: "dolly",    label: "DOLLY_PUSH",    fragment: "dolly push toward subject" },
+            { value: "orbit",    label: "ORBIT",         fragment: "orbiting camera" },
+            { value: "handheld", label: "HANDHELD",      fragment: "handheld shaky cam" },
+            { value: "warp",     label: "REALITY_WARP",  fragment: "reality-warping camera motion" },
+        ],
+    };
+
+    // legacy fragments for non-customizable groups (color, duration)
+    const STATIC_FRAGMENTS = {
         color: {
-            cold_blue: "cold blue color grade",
-            warm_golden: "warm golden hour grade",
-            desaturated: "desaturated near-monochrome",
+            cold_blue:     "cold blue color grade",
+            warm_golden:   "warm golden hour grade",
+            desaturated:   "desaturated near-monochrome",
             high_contrast: "high contrast punchy grade",
         },
         duration: {
-            "2": "2s clip",
-            "4": "4s clip",
-            "8": "8s clip",
+            "2":  "2s clip",
+            "4":  "4s clip",
+            "8":  "8s clip",
             "12": "12s clip",
         },
     };
 
+    const loadChips = () => {
+        try {
+            const raw = localStorage.getItem(CHIP_STORE_KEY);
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                // merge: any group not in user data falls back to defaults
+                return { ...DEFAULT_CHIPS, ...parsed };
+            }
+        } catch (e) {}
+        return JSON.parse(JSON.stringify(DEFAULT_CHIPS));  // deep clone
+    };
+
+    const saveChips = (chips) => {
+        try { localStorage.setItem(CHIP_STORE_KEY, JSON.stringify(chips)); }
+        catch (e) {}
+    };
+
+    const getFragment = (group, val) => {
+        if (STATIC_FRAGMENTS[group]) return STATIC_FRAGMENTS[group][val];
+        const chips = loadChips();
+        return chips[group]?.find((c) => c.value === val)?.fragment;
+    };
+
+    /* ---------- RENDER DYNAMIC CHIPS ---------- */
+    const renderDynamicGrids = () => {
+        const chips = loadChips();
+        document.querySelectorAll('.chip-grid[data-dynamic="true"]').forEach((grid) => {
+            const group = grid.dataset.group;
+            const items = chips[group] || [];
+            grid.innerHTML = items.map((c) =>
+                `<button class="chip" data-value="${c.value}">${c.label}</button>`
+            ).join("");
+        });
+    };
+    renderDynamicGrids();
+
+    /* ---------- CHIP SELECTION + PROMPT READOUT ---------- */
     const selections = {};
-    const readout = document.getElementById("promptReadout");
-    const director = document.querySelector(".director");
+    const readout    = document.getElementById("promptReadout");
+    const director   = document.querySelector(".director");
 
     const renderReadout = () => {
         if (!readout) return;
         const parts = [];
         for (const group of Object.keys(selections)) {
-            const val = selections[group];
-            const frag = FRAGMENTS[group]?.[val];
+            const frag = getFragment(group, selections[group]);
             if (frag) parts.push(frag);
         }
         const note = director?.value?.trim();
@@ -362,26 +407,116 @@
         readout.textContent = parts.length ? parts.join(", ") : "— awaiting input —";
     };
 
+    // event delegation: works for both static and dynamically-rendered chips
     document.querySelectorAll(".chip-grid").forEach((grid) => {
         const group = grid.dataset.group;
-        grid.querySelectorAll(".chip").forEach((chip) => {
-            chip.addEventListener("click", (e) => {
-                e.preventDefault();
-                const val = chip.dataset.value;
-                if (selections[group] === val) {
-                    delete selections[group];
-                    chip.classList.remove("is-selected");
-                } else {
-                    grid.querySelectorAll(".chip.is-selected").forEach((c) => c.classList.remove("is-selected"));
-                    chip.classList.add("is-selected");
-                    selections[group] = val;
-                }
-                renderReadout();
-            });
+        if (!group) return;
+        grid.addEventListener("click", (e) => {
+            const chip = e.target.closest(".chip");
+            if (!chip || !grid.contains(chip)) return;
+            e.preventDefault();
+            const val = chip.dataset.value;
+            if (selections[group] === val) {
+                delete selections[group];
+                chip.classList.remove("is-selected");
+            } else {
+                grid.querySelectorAll(".chip.is-selected").forEach((c) => c.classList.remove("is-selected"));
+                chip.classList.add("is-selected");
+                selections[group] = val;
+            }
+            renderReadout();
         });
     });
 
     if (director) director.addEventListener("input", renderReadout);
+
+    /* ---------- DASHBOARD ---------- */
+    const dashboardEl = document.querySelector(".dashboard");
+    if (dashboardEl) {
+        const slugify = (s) => s.trim().toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
+
+        const renderDashboardGroup = (group) => {
+            const panel = dashboardEl.querySelector(`.dash-panel[data-group="${group}"]`);
+            if (!panel) return;
+            const list = panel.querySelector(".dash-chips");
+            const chips = loadChips();
+            const items = chips[group] || [];
+            list.innerHTML = items.map((c) => `
+                <div class="dash-chip" data-value="${c.value}">
+                    <div class="dash-chip-head">
+                        <span class="dash-chip-label">${c.label}</span>
+                        <button class="dash-chip-remove" type="button" aria-label="Remove ${c.label}">×</button>
+                    </div>
+                    <div class="dash-chip-frag">${c.fragment}</div>
+                </div>
+            `).join("") || `<div class="dash-empty">— no chips. add one below. —</div>`;
+        };
+
+        const renderAll = () => {
+            ["theme", "mood", "camera", "motion"].forEach(renderDashboardGroup);
+        };
+        renderAll();
+
+        // delegated handlers: remove chip
+        dashboardEl.addEventListener("click", (e) => {
+            const removeBtn = e.target.closest(".dash-chip-remove");
+            if (removeBtn) {
+                const chipEl = removeBtn.closest(".dash-chip");
+                const panel  = removeBtn.closest(".dash-panel");
+                if (!chipEl || !panel) return;
+                const group  = panel.dataset.group;
+                const value  = chipEl.dataset.value;
+                const chips  = loadChips();
+                chips[group] = (chips[group] || []).filter((c) => c.value !== value);
+                saveChips(chips);
+                renderDashboardGroup(group);
+                return;
+            }
+
+            const resetBtn = e.target.closest(".dash-reset");
+            if (resetBtn) {
+                const panel = resetBtn.closest(".dash-panel");
+                const group = panel.dataset.group;
+                const chips = loadChips();
+                chips[group] = JSON.parse(JSON.stringify(DEFAULT_CHIPS[group] || []));
+                saveChips(chips);
+                renderDashboardGroup(group);
+            }
+        });
+
+        // delegated form submissions: add chip
+        dashboardEl.addEventListener("submit", (e) => {
+            const form = e.target.closest(".dash-add");
+            if (!form) return;
+            e.preventDefault();
+            const panel = form.closest(".dash-panel");
+            const group = panel.dataset.group;
+            const labelInput = form.querySelector('[name="label"]');
+            const fragInput  = form.querySelector('[name="fragment"]');
+            const rawLabel = labelInput.value.trim();
+            const rawFrag  = fragInput.value.trim();
+            if (!rawLabel || !rawFrag) return;
+            const value = slugify(rawLabel);
+            if (!value) return;
+            const chips = loadChips();
+            chips[group] = chips[group] || [];
+            if (chips[group].some((c) => c.value === value)) {
+                // already exists — flash the existing one
+                const existing = panel.querySelector(`.dash-chip[data-value="${value}"]`);
+                if (existing) {
+                    existing.classList.add("dash-chip--flash");
+                    setTimeout(() => existing.classList.remove("dash-chip--flash"), 800);
+                }
+                return;
+            }
+            chips[group].push({ value, label: rawLabel.toUpperCase(), fragment: rawFrag });
+            saveChips(chips);
+            renderDashboardGroup(group);
+            labelInput.value = "";
+            fragInput.value  = "";
+            labelInput.focus();
+        });
+    }
 
     /* ---------- DROPZONE ---------- */
     const drop = document.querySelector(".dropzone");
