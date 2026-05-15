@@ -769,6 +769,58 @@
         });
     }
 
+    /* ---------- DOWNLOAD HANDLER ----------
+       cross-origin "download" attribute is ignored by browsers, so we fetch
+       the video as a blob and trigger a save from a same-origin blob: url.
+       try direct (most CDNs allow CORS for videos) → fall back to our proxy. */
+    const triggerSave = (blob, filename) => {
+        const blobUrl = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = blobUrl;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 1500);
+    };
+
+    if (modalDL) {
+        modalDL.addEventListener("click", async (e) => {
+            e.preventDefault();
+            const videoUrl = modalDL.dataset.videoUrl;
+            const filename = modalDL.dataset.filename || "xperiment.mp4";
+            if (!videoUrl) return;
+
+            const originalLabel = modalDL.textContent;
+            modalDL.textContent = "downloading…";
+            modalDL.style.pointerEvents = "none";
+
+            try {
+                let blob;
+                try {
+                    // direct fetch from kling cdn — fast, uses native browser streaming
+                    const r = await fetch(videoUrl);
+                    if (!r.ok) throw new Error(`direct ${r.status}`);
+                    blob = await r.blob();
+                } catch (directErr) {
+                    // CORS-blocked or unreachable — proxy through our backend
+                    const proxyUrl = `/api/download?url=${encodeURIComponent(videoUrl)}&name=${encodeURIComponent(filename)}`;
+                    const r = await fetch(proxyUrl);
+                    if (!r.ok) throw new Error(`proxy ${r.status}`);
+                    blob = await r.blob();
+                }
+                triggerSave(blob, filename);
+                modalDL.textContent = "saved ✓";
+                setTimeout(() => { modalDL.textContent = originalLabel; }, 1800);
+            } catch (err) {
+                modalDL.textContent = `failed: ${err.message}`;
+                setTimeout(() => { modalDL.textContent = originalLabel; }, 3000);
+            } finally {
+                modalDL.style.pointerEvents = "";
+            }
+        });
+    }
+
     const formatTimer = (ms) => {
         const s = Math.floor(ms / 1000);
         return `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
@@ -840,10 +892,11 @@
                     const filename = `xperiment_${taskId}.mp4`;
                     // inline player streams directly from kling's cdn (fast)
                     modalResult.innerHTML = `<video src="${data.videoUrl}" controls autoplay loop playsinline></video>`;
-                    // download routes through our proxy so the browser saves the file
-                    // instead of navigating to it (cross-origin "download" attribute trick)
-                    modalDL.href = `/api/download?url=${encodeURIComponent(data.videoUrl)}&name=${encodeURIComponent(filename)}`;
-                    modalDL.download = filename;
+                    // stash for the click handler — actual download happens via blob fetch
+                    modalDL.dataset.videoUrl = data.videoUrl;
+                    modalDL.dataset.filename = filename;
+                    modalDL.removeAttribute("href");          // disable default nav
+                    modalDL.removeAttribute("download");      // we trigger save manually
                     setPane("success");
                     return;
                 }
