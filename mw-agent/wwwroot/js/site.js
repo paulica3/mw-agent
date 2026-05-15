@@ -837,9 +837,13 @@
                 }
                 if (data.status === "succeeded" && data.videoUrl) {
                     if (activeTimerId) { clearInterval(activeTimerId); activeTimerId = null; }
+                    const filename = `xperiment_${taskId}.mp4`;
+                    // inline player streams directly from kling's cdn (fast)
                     modalResult.innerHTML = `<video src="${data.videoUrl}" controls autoplay loop playsinline></video>`;
-                    modalDL.href = data.videoUrl;
-                    modalDL.download = `xperiment_${taskId}.mp4`;
+                    // download routes through our proxy so the browser saves the file
+                    // instead of navigating to it (cross-origin "download" attribute trick)
+                    modalDL.href = `/api/download?url=${encodeURIComponent(data.videoUrl)}&name=${encodeURIComponent(filename)}`;
+                    modalDL.download = filename;
                     setPane("success");
                     return;
                 }
