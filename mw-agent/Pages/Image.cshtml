@@ -12,36 +12,13 @@
     </div>
 
     <div class="gen-grid">
-        <div class="gen-panel">
-            <div class="panel-bar">
-                <span class="panel-tag">01</span>
-                <span class="panel-name">// THEME</span>
-                <span class="panel-hint">choose one</span>
-            </div>
-            <div class="chip-grid" data-group="theme" data-dynamic="true"></div>
-        </div>
+        <!-- panels rendered by JS from the chip store, filtered to showOn:image -->
+        <div id="dynamicPanels" class="contents"></div>
 
+        <!-- static panels: color grade (special swatches), dropzone, notes -->
         <div class="gen-panel">
             <div class="panel-bar">
-                <span class="panel-tag">02</span>
-                <span class="panel-name">// MOOD</span>
-                <span class="panel-hint">energy of the frame</span>
-            </div>
-            <div class="chip-grid" data-group="mood" data-dynamic="true"></div>
-        </div>
-
-        <div class="gen-panel">
-            <div class="panel-bar">
-                <span class="panel-tag">03</span>
-                <span class="panel-name">// CAMERA</span>
-                <span class="panel-hint">point of view</span>
-            </div>
-            <div class="chip-grid" data-group="camera" data-dynamic="true"></div>
-        </div>
-
-        <div class="gen-panel">
-            <div class="panel-bar">
-                <span class="panel-tag">04</span>
+                <span class="panel-tag"></span>
                 <span class="panel-name">// COLOR_GRADE</span>
                 <span class="panel-hint">paint the chaos</span>
             </div>
@@ -55,7 +32,7 @@
 
         <div class="gen-panel gen-panel--wide">
             <div class="panel-bar">
-                <span class="panel-tag">05</span>
+                <span class="panel-tag"></span>
                 <span class="panel-name">// REFERENCE_IMAGE</span>
                 <span class="panel-hint">optional. drop a frame.</span>
             </div>
@@ -71,7 +48,7 @@
 
         <div class="gen-panel gen-panel--wide">
             <div class="panel-bar">
-                <span class="panel-tag">06</span>
+                <span class="panel-tag"></span>
                 <span class="panel-name">// DIRECTOR_NOTES</span>
                 <span class="panel-hint">optional. one line of intent.</span>
             </div>

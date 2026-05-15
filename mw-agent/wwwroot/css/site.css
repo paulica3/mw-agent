@@ -1518,6 +1518,79 @@ body.cursor-hot .cursor-star svg {
 /* =============================================================
    DASHBOARD — chip customizer
    ============================================================= */
+
+/* let the dynamic panels container disappear into the grid layout */
+#dynamicPanels { display: contents; }
+
+.dash-status-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 0.9rem;
+    flex-wrap: wrap;
+}
+.dash-status {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.18em;
+    color: var(--ink-mute);
+    padding: 0.3rem 0.7rem;
+    border: 1px solid var(--line);
+    background: rgba(0,0,0,0.25);
+}
+.dash-reset-all {
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.18em;
+    color: var(--ink-mute);
+    padding: 0.4rem 0.85rem;
+    border: 1px solid var(--line);
+    transition: color 0.15s, border-color 0.15s, background-color 0.15s;
+}
+.dash-reset-all:hover {
+    color: #ff5577;
+    border-color: #ff5577;
+    background: rgba(255,85,119,0.06);
+}
+
+/* new-category panel sits above the grid */
+.dash-new-cat {
+    margin-top: 1.4rem;
+    padding: 1.1rem 1.3rem 1.2rem;
+}
+.dash-new-cat-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.6rem;
+}
+.dash-new-cat-row input[type="text"] {
+    width: 100%;
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    color: var(--ink);
+    background: rgba(0,0,0,0.35);
+    border: 1px solid var(--line);
+    padding: 0.6rem 0.7rem;
+    cursor: text;
+    transition: border-color 0.15s, background-color 0.15s;
+}
+.dash-new-cat-row input[type="text"]::placeholder { color: var(--ink-mute); letter-spacing: 0.06em; }
+.dash-new-cat-row input[type="text"]:focus {
+    outline: none;
+    border-color: var(--ink-dim);
+    background: rgba(0,0,0,0.55);
+}
+.dash-new-cat-toggles {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    padding: 0.4rem 0.7rem;
+    border: 1px dashed var(--line);
+}
+.dash-new-cat-btn { grid-column: 1 / -1; }
+
 .dash-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1624,6 +1697,110 @@ body.cursor-hot .cursor-star svg {
     border: 1px dashed var(--line);
 }
 
+/* category header — editable label + remove */
+.dash-cat-label {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    letter-spacing: 0.14em;
+    color: var(--ink);
+    background: transparent;
+    border: 1px solid transparent;
+    padding: 0.3rem 0.5rem;
+    cursor: text;
+    transition: border-color 0.15s, background-color 0.15s, color 0.15s;
+}
+.dash-cat-label:hover  { border-color: var(--line); }
+.dash-cat-label:focus  { outline: none; border-color: var(--ink-dim); background: rgba(0,0,0,0.35); }
+.dash-cat-remove {
+    flex: 0 0 auto;
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.18em;
+    color: var(--ink-mute);
+    padding: 0.25rem 0.6rem;
+    border: 1px solid var(--line);
+    transition: color 0.15s, border-color 0.15s, background-color 0.15s;
+}
+.dash-cat-remove:hover {
+    color: #ff5577;
+    border-color: #ff5577;
+    background: rgba(255,85,119,0.06);
+}
+
+/* meta row: id chip + showOn toggles */
+.dash-cat-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin-bottom: 0.9rem;
+    flex-wrap: wrap;
+    font-family: var(--mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.14em;
+    color: var(--ink-mute);
+}
+.dash-cat-id code {
+    font-family: var(--mono);
+    font-size: 0.66rem;
+    color: var(--ink-dim);
+    padding: 0.1rem 0.4rem;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--line);
+}
+.dash-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    cursor: pointer;
+    user-select: none;
+}
+.dash-toggle input[type="checkbox"] {
+    width: 14px;
+    height: 14px;
+    accent-color: var(--ink);
+    cursor: pointer;
+}
+.dash-toggle span {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.14em;
+    color: var(--ink-dim);
+}
+
+/* editable chip — inline label & fragment inputs */
+.dash-chip-label-input {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.14em;
+    color: var(--ink);
+    background: transparent;
+    border: 1px solid transparent;
+    padding: 0.25rem 0.45rem;
+    cursor: text;
+    transition: border-color 0.15s, background-color 0.15s;
+}
+.dash-chip-label-input:hover { border-color: var(--line); }
+.dash-chip-label-input:focus { outline: none; border-color: var(--ink-dim); background: rgba(0,0,0,0.35); }
+
+.dash-chip-frag-input {
+    width: 100%;
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.04em;
+    color: var(--ink-dim);
+    background: transparent;
+    border: 1px solid transparent;
+    padding: 0.25rem 0.45rem;
+    cursor: text;
+    transition: border-color 0.15s, background-color 0.15s, color 0.15s;
+}
+.dash-chip-frag-input:hover { border-color: var(--line); color: var(--ink); }
+.dash-chip-frag-input:focus { outline: none; border-color: var(--ink-dim); background: rgba(0,0,0,0.35); color: var(--ink); }
+
 /* add form */
 .dash-add {
     display: grid;
@@ -1680,17 +1857,23 @@ body.cursor-hot .cursor-star svg {
 /* responsive — single column on tablet/phone */
 @media (max-width: 900px) {
     .dash-grid { grid-template-columns: 1fr; gap: 0.9rem; }
-    .dash-panel .panel-bar .dash-reset { font-size: 0.58rem; padding: 0.22rem 0.45rem; }
-    .dash-chip-label  { font-size: 0.72rem; }
-    .dash-chip-frag   { font-size: 0.68rem; }
+    .dash-new-cat-row { grid-template-columns: 1fr; }
+    .dash-cat-label   { font-size: 0.74rem; }
+    .dash-cat-remove  { font-size: 0.55rem; }
+    .dash-chip-label-input { font-size: 0.72rem; }
+    .dash-chip-frag-input  { font-size: 0.68rem; }
     .dash-add input   { font-size: 0.72rem; padding: 0.55rem 0.6rem; }
     .dash-add-btn     { font-size: 0.64rem; padding: 0.6rem 0.8rem; }
     .dash-foot-note   { font-size: 0.6rem; letter-spacing: 0.14em; }
+    .dash-status, .dash-reset-all { font-size: 0.62rem; padding: 0.25rem 0.55rem; }
 }
 @media (max-width: 480px) {
     .dash-chip { padding: 0.5rem 0.55rem 0.55rem; }
     .dash-chip-head { gap: 0.4rem; }
     .dash-chip-remove { width: 20px; height: 20px; font-size: 1rem; }
+    .dash-cat-meta { gap: 0.5rem; font-size: 0.6rem; }
+    .dash-status-row { gap: 0.5rem; }
+    .dash-reset-all { margin-left: 0; }
 }
 
 /* =============================================================
@@ -1787,6 +1970,91 @@ body.cursor-hot .cursor-star svg {
     /* the title is long — give it a softer rendering in bloom */
     font-size: clamp(2rem, 6vw, 4rem);
 }
+[data-theme="bloom"] .dash-status {
+    font-family: var(--sans);
+    text-transform: lowercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-mute);
+    background: rgba(255,255,255,0.4);
+    border-radius: 14px;
+}
+[data-theme="bloom"] .dash-reset-all {
+    font-family: var(--sans);
+    text-transform: lowercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-mute);
+    border-color: var(--line);
+    border-radius: 14px;
+}
+[data-theme="bloom"] .dash-reset-all:hover {
+    color: #c4456a;
+    border-color: #c4456a;
+    background: rgba(196,69,106,0.08);
+}
+[data-theme="bloom"] .dash-cat-label {
+    font-family: var(--serif);
+    font-size: 1.2rem;
+    letter-spacing: 0.02em;
+    text-transform: none;
+    color: var(--ink);
+    border-radius: 10px;
+}
+[data-theme="bloom"] .dash-cat-label:hover  { border-color: var(--line); background: rgba(255,255,255,0.3); }
+[data-theme="bloom"] .dash-cat-label:focus  { background: rgba(255,255,255,0.7); border-color: var(--accent); }
+[data-theme="bloom"] .dash-cat-remove {
+    font-family: var(--sans);
+    text-transform: lowercase;
+    letter-spacing: 0.06em;
+    border-radius: 999px;
+}
+[data-theme="bloom"] .dash-cat-meta { font-family: var(--sans); text-transform: lowercase; letter-spacing: 0.04em; }
+[data-theme="bloom"] .dash-cat-id code {
+    font-family: var(--sans);
+    background: rgba(255,255,255,0.5);
+    border-radius: 8px;
+}
+[data-theme="bloom"] .dash-toggle span {
+    font-family: var(--sans);
+    text-transform: lowercase;
+    letter-spacing: 0.04em;
+    color: var(--ink-dim);
+}
+[data-theme="bloom"] .dash-toggle input[type="checkbox"] { accent-color: var(--accent); }
+[data-theme="bloom"] .dash-chip-label-input {
+    font-family: var(--serif);
+    font-size: 1rem;
+    letter-spacing: 0.02em;
+    text-transform: none;
+    color: var(--ink);
+    border-radius: 10px;
+}
+[data-theme="bloom"] .dash-chip-label-input:hover { border-color: var(--line); background: rgba(255,255,255,0.3); }
+[data-theme="bloom"] .dash-chip-label-input:focus { background: rgba(255,255,255,0.7); border-color: var(--accent); }
+[data-theme="bloom"] .dash-chip-frag-input {
+    font-family: var(--sans);
+    font-size: 0.85rem;
+    letter-spacing: 0.01em;
+    text-transform: none;
+    color: var(--ink-dim);
+    border-radius: 10px;
+}
+[data-theme="bloom"] .dash-chip-frag-input:hover  { border-color: var(--line); background: rgba(255,255,255,0.3); color: var(--ink); }
+[data-theme="bloom"] .dash-chip-frag-input:focus  { background: rgba(255,255,255,0.7); border-color: var(--accent); }
+[data-theme="bloom"] .dash-new-cat-row input[type="text"] {
+    font-family: var(--sans);
+    text-transform: none;
+    letter-spacing: 0.01em;
+    background: rgba(255,255,255,0.55);
+    border-radius: 14px;
+    color: var(--ink);
+}
+[data-theme="bloom"] .dash-new-cat-row input[type="text"]::placeholder {
+    font-family: var(--sans);
+    text-transform: lowercase;
+    letter-spacing: 0.02em;
+    color: var(--ink-mute);
+}
+[data-theme="bloom"] .dash-new-cat-toggles { border-radius: 14px; border-style: solid; background: rgba(255,255,255,0.3); }
 
 /* smooth theme transition — note: .nav is intentionally excluded
    because it manages its own transform/opacity/filter transitions */

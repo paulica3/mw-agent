@@ -8,70 +8,41 @@
     <div class="gen-head">
         <div class="gen-crumbs">/ <a asp-page="/Index">HOME</a> / <span class="hl">DASHBOARD</span></div>
         <h1 class="gen-title glitch" data-text="CUSTOMIZE_SIGNAL">CUSTOMIZE_SIGNAL</h1>
-        <p class="gen-lede">tune the chip menu. add what you actually use. drop what you don't.</p>
+        <p class="gen-lede">edit any chip. delete what you don't use. add new categories on the fly.</p>
+        <div class="dash-status-row">
+            <span class="dash-status" id="dashStatus">connecting…</span>
+            <button class="dash-reset-all" type="button" id="dashResetAll">reset everything</button>
+        </div>
     </div>
 
-    <div class="dash-grid">
-
-        <div class="dash-panel gen-panel" data-group="theme">
-            <div class="panel-bar">
-                <span class="panel-tag">01</span>
-                <span class="panel-name">// THEME</span>
-                <button class="dash-reset" type="button">reset</button>
-            </div>
-            <div class="dash-chips"></div>
-            <form class="dash-add">
-                <input name="label"    type="text" placeholder="LABEL  (e.g. CYBERPUNK)" maxlength="32" required/>
-                <input name="fragment" type="text" placeholder="prompt fragment  (e.g. neon cyberpunk megacity, rainslick streets)" maxlength="200" required/>
-                <button class="dash-add-btn" type="submit"><span>+ add</span></button>
-            </form>
+    <form class="dash-new-cat gen-panel" id="dashNewCategory">
+        <div class="panel-bar">
+            <span class="panel-tag">+</span>
+            <span class="panel-name">// ADD_NEW_CATEGORY</span>
+            <span class="panel-hint">a new panel of chips on image / video</span>
         </div>
-
-        <div class="dash-panel gen-panel" data-group="mood">
-            <div class="panel-bar">
-                <span class="panel-tag">02</span>
-                <span class="panel-name">// MOOD</span>
-                <button class="dash-reset" type="button">reset</button>
+        <div class="dash-new-cat-row">
+            <input name="label" type="text" placeholder="CATEGORY NAME  (e.g. LIGHTING)" maxlength="32" required/>
+            <input name="hint"  type="text" placeholder="hint text  (e.g. light direction)" maxlength="40"/>
+            <div class="dash-new-cat-toggles">
+                <label class="dash-toggle">
+                    <input type="checkbox" name="image" checked/>
+                    <span>image</span>
+                </label>
+                <label class="dash-toggle">
+                    <input type="checkbox" name="video" checked/>
+                    <span>video</span>
+                </label>
             </div>
-            <div class="dash-chips"></div>
-            <form class="dash-add">
-                <input name="label"    type="text" placeholder="LABEL  (e.g. HOPEFUL)" maxlength="32" required/>
-                <input name="fragment" type="text" placeholder="prompt fragment  (e.g. hopeful uplifting tone)" maxlength="200" required/>
-                <button class="dash-add-btn" type="submit"><span>+ add</span></button>
-            </form>
+            <button class="dash-add-btn dash-new-cat-btn" type="submit"><span>+ create category</span></button>
         </div>
+    </form>
 
-        <div class="dash-panel gen-panel" data-group="camera">
-            <div class="panel-bar">
-                <span class="panel-tag">03</span>
-                <span class="panel-name">// CAMERA</span>
-                <button class="dash-reset" type="button">reset</button>
-            </div>
-            <div class="dash-chips"></div>
-            <form class="dash-add">
-                <input name="label"    type="text" placeholder="LABEL  (e.g. MACRO)" maxlength="32" required/>
-                <input name="fragment" type="text" placeholder="prompt fragment  (e.g. extreme macro lens, microscopic detail)" maxlength="200" required/>
-                <button class="dash-add-btn" type="submit"><span>+ add</span></button>
-            </form>
-        </div>
-
-        <div class="dash-panel gen-panel" data-group="motion">
-            <div class="panel-bar">
-                <span class="panel-tag">04</span>
-                <span class="panel-name">// MOTION</span>
-                <button class="dash-reset" type="button">reset</button>
-            </div>
-            <div class="dash-chips"></div>
-            <form class="dash-add">
-                <input name="label"    type="text" placeholder="LABEL  (e.g. WHIP_PAN)" maxlength="32" required/>
-                <input name="fragment" type="text" placeholder="prompt fragment  (e.g. fast whip pan transition)" maxlength="200" required/>
-                <button class="dash-add-btn" type="submit"><span>+ add</span></button>
-            </form>
-        </div>
-
+    <div class="dash-grid" id="dashGrid">
+        <div class="dash-empty">— loading… —</div>
     </div>
 
     <div class="dash-footer">
-        <span class="dash-foot-note">// saved locally on this device · clear browser data to reset</span>
+        <span class="dash-foot-note">// synced to your account via vercel kv · changes save automatically</span>
     </div>
 </section>

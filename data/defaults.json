@@ -1,0 +1,56 @@
+{
+  "categories": [
+    {
+      "id": "theme",
+      "label": "THEME",
+      "hint": "choose one",
+      "showOn": ["image", "video"],
+      "chips": [
+        { "value": "futuristic", "label": "FUTURISTIC", "fragment": "cinematic futuristic aesthetic, holographic overlays, neon-lit" },
+        { "value": "surreal",    "label": "SURREAL",    "fragment": "dreamlike surreal imagery, impossible geometry" },
+        { "value": "gritty",     "label": "GRITTY",     "fragment": "raw gritty urban texture, harsh contrast" },
+        { "value": "dreamlike",  "label": "DREAMLIKE",  "fragment": "soft pastel dreamscape, hazy diffusion" },
+        { "value": "retro",      "label": "RETRO",      "fragment": "vintage analog film grain, warm faded tones" },
+        { "value": "classic",    "label": "CLASSIC",    "fragment": "timeless cinematic composition, rich shadows" }
+      ]
+    },
+    {
+      "id": "mood",
+      "label": "MOOD",
+      "hint": "energy of the frame",
+      "showOn": ["image", "video"],
+      "chips": [
+        { "value": "dark",        "label": "DARK_&_TENSE", "fragment": "dark & tense atmosphere" },
+        { "value": "euphoric",    "label": "EUPHORIC",     "fragment": "euphoric high-energy mood" },
+        { "value": "melancholic", "label": "MELANCHOLIC",  "fragment": "melancholic introspective tone" },
+        { "value": "chaotic",     "label": "CHAOTIC",      "fragment": "chaotic frantic energy" }
+      ]
+    },
+    {
+      "id": "camera",
+      "label": "CAMERA",
+      "hint": "point of view",
+      "showOn": ["image"],
+      "chips": [
+        { "value": "wide",        "label": "WIDE_CINEMATIC", "fragment": "wide cinematic shot" },
+        { "value": "close",       "label": "CLOSE_UP_RAW",   "fragment": "intimate close-up, shallow depth" },
+        { "value": "drone",       "label": "DRONE",          "fragment": "aerial drone perspective" },
+        { "value": "slow_motion", "label": "SLOW_MOTION",    "fragment": "ultra slow motion" }
+      ]
+    },
+    {
+      "id": "motion",
+      "label": "MOTION",
+      "hint": "how it moves",
+      "showOn": ["video"],
+      "chips": [
+        { "value": "static",   "label": "STATIC_HOLD",   "fragment": "static locked frame" },
+        { "value": "slow_pan", "label": "SLOW_PAN",      "fragment": "slow lateral pan" },
+        { "value": "dolly",    "label": "DOLLY_PUSH",    "fragment": "dolly push toward subject" },
+        { "value": "orbit",    "label": "ORBIT",         "fragment": "orbiting camera" },
+        { "value": "handheld", "label": "HANDHELD",      "fragment": "handheld shaky cam" },
+        { "value": "warp",     "label": "REALITY_WARP",  "fragment": "reality-warping camera motion" }
+      ]
+    }
+  ]
+}

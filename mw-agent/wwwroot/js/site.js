@@ -302,43 +302,19 @@
     }, 2200);
 
     /* ---------- CHIP STORE ----------
-       chips for theme/mood/camera/motion are user-customizable via Dashboard
-       and persisted to localStorage. color/duration stay hardcoded in HTML
-       because they have special styling (swatches, numeric formatting).      */
-    const CHIP_STORE_KEY = "xa-chips";
+       chips and categories live in Vercel KV, fetched via /api/chips.
+       cached in localStorage for instant first paint; the API response
+       reconciles when it arrives. color/duration are special groups
+       hardcoded in HTML — their fragments live in STATIC_FRAGMENTS.        */
+    const API_URL          = "/api/chips";
+    const CACHE_KEY        = "xa-chips-cache";
+    const STATIC_GROUPS    = ["color", "duration"];
+    const PAGE             = document.body.classList.contains("page-dashboard") ? "dashboard"
+                           : document.body.classList.contains("page-image")     ? "image"
+                           : document.body.classList.contains("page-video")     ? "video"
+                           : null;
 
-    const DEFAULT_CHIPS = {
-        theme: [
-            { value: "futuristic", label: "FUTURISTIC", fragment: "cinematic futuristic aesthetic, holographic overlays, neon-lit" },
-            { value: "surreal",    label: "SURREAL",    fragment: "dreamlike surreal imagery, impossible geometry" },
-            { value: "gritty",     label: "GRITTY",     fragment: "raw gritty urban texture, harsh contrast" },
-            { value: "dreamlike",  label: "DREAMLIKE",  fragment: "soft pastel dreamscape, hazy diffusion" },
-            { value: "retro",      label: "RETRO",      fragment: "vintage analog film grain, warm faded tones" },
-            { value: "classic",    label: "CLASSIC",    fragment: "timeless cinematic composition, rich shadows" },
-        ],
-        mood: [
-            { value: "dark",         label: "DARK_&_TENSE", fragment: "dark & tense atmosphere" },
-            { value: "euphoric",     label: "EUPHORIC",     fragment: "euphoric high-energy mood" },
-            { value: "melancholic",  label: "MELANCHOLIC",  fragment: "melancholic introspective tone" },
-            { value: "chaotic",      label: "CHAOTIC",      fragment: "chaotic frantic energy" },
-        ],
-        camera: [
-            { value: "wide",        label: "WIDE_CINEMATIC", fragment: "wide cinematic shot" },
-            { value: "close",       label: "CLOSE_UP_RAW",   fragment: "intimate close-up, shallow depth" },
-            { value: "drone",       label: "DRONE",          fragment: "aerial drone perspective" },
-            { value: "slow_motion", label: "SLOW_MOTION",    fragment: "ultra slow motion" },
-        ],
-        motion: [
-            { value: "static",   label: "STATIC_HOLD",   fragment: "static locked frame" },
-            { value: "slow_pan", label: "SLOW_PAN",      fragment: "slow lateral pan" },
-            { value: "dolly",    label: "DOLLY_PUSH",    fragment: "dolly push toward subject" },
-            { value: "orbit",    label: "ORBIT",         fragment: "orbiting camera" },
-            { value: "handheld", label: "HANDHELD",      fragment: "handheld shaky cam" },
-            { value: "warp",     label: "REALITY_WARP",  fragment: "reality-warping camera motion" },
-        ],
-    };
-
-    // legacy fragments for non-customizable groups (color, duration)
+    // fragments for the special hardcoded groups (color swatches, duration numerics)
     const STATIC_FRAGMENTS = {
         color: {
             cold_blue:     "cold blue color grade",
@@ -347,48 +323,84 @@
             high_contrast: "high contrast punchy grade",
         },
         duration: {
-            "2":  "2s clip",
-            "4":  "4s clip",
-            "8":  "8s clip",
-            "12": "12s clip",
+            "2": "2s clip", "4": "4s clip", "8": "8s clip", "12": "12s clip",
         },
     };
 
-    const loadChips = () => {
+    const slugify = (s) => (s || "")
+        .toString()
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "_")
+        .replace(/^_|_$/g, "");
+
+    const escapeHTML = (s) => (s || "")
+        .toString()
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+
+    /* in-memory copy of the entire config; one source of truth on the page. */
+    let CONFIG = { categories: [] };
+
+    const cacheRead = () => {
         try {
-            const raw = localStorage.getItem(CHIP_STORE_KEY);
-            if (raw) {
-                const parsed = JSON.parse(raw);
-                // merge: any group not in user data falls back to defaults
-                return { ...DEFAULT_CHIPS, ...parsed };
-            }
+            const raw = localStorage.getItem(CACHE_KEY);
+            if (raw) return JSON.parse(raw);
         } catch (e) {}
-        return JSON.parse(JSON.stringify(DEFAULT_CHIPS));  // deep clone
+        return null;
+    };
+    const cacheWrite = (cfg) => {
+        try { localStorage.setItem(CACHE_KEY, JSON.stringify(cfg)); } catch (e) {}
     };
 
-    const saveChips = (chips) => {
-        try { localStorage.setItem(CHIP_STORE_KEY, JSON.stringify(chips)); }
-        catch (e) {}
+    const apiGet = async () => {
+        const r = await fetch(API_URL, { headers: { "Accept": "application/json" } });
+        if (!r.ok) throw new Error(`GET ${API_URL} -> ${r.status}`);
+        return r.json();
+    };
+    const apiPut = async (cfg) => {
+        const r = await fetch(API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(cfg),
+        });
+        if (!r.ok) throw new Error(`POST ${API_URL} -> ${r.status}`);
+        return r.json();
+    };
+    const apiReset = async () => {
+        const r = await fetch(API_URL, { method: "DELETE" });
+        if (!r.ok) throw new Error(`DELETE ${API_URL} -> ${r.status}`);
+        return r.json();
+    };
+
+    /* debounced save: edits feel instant; one network call per ~600ms quiet period. */
+    let saveTimer = null;
+    let saveBusy  = false;
+    const scheduleSave = (showStatus) => {
+        cacheWrite(CONFIG);
+        if (saveTimer) clearTimeout(saveTimer);
+        saveTimer = setTimeout(async () => {
+            saveBusy = true;
+            showStatus?.("saving…");
+            try {
+                await apiPut(CONFIG);
+                showStatus?.("saved");
+            } catch (e) {
+                showStatus?.("offline — cached locally");
+            } finally {
+                saveBusy = false;
+            }
+        }, 600);
     };
 
     const getFragment = (group, val) => {
         if (STATIC_FRAGMENTS[group]) return STATIC_FRAGMENTS[group][val];
-        const chips = loadChips();
-        return chips[group]?.find((c) => c.value === val)?.fragment;
+        const cat = CONFIG.categories.find((c) => c.id === group);
+        return cat?.chips.find((c) => c.value === val)?.fragment;
     };
-
-    /* ---------- RENDER DYNAMIC CHIPS ---------- */
-    const renderDynamicGrids = () => {
-        const chips = loadChips();
-        document.querySelectorAll('.chip-grid[data-dynamic="true"]').forEach((grid) => {
-            const group = grid.dataset.group;
-            const items = chips[group] || [];
-            grid.innerHTML = items.map((c) =>
-                `<button class="chip" data-value="${c.value}">${c.label}</button>`
-            ).join("");
-        });
-    };
-    renderDynamicGrids();
 
     /* ---------- CHIP SELECTION + PROMPT READOUT ---------- */
     const selections = {};
@@ -407,13 +419,17 @@
         readout.textContent = parts.length ? parts.join(", ") : "— awaiting input —";
     };
 
-    // event delegation: works for both static and dynamically-rendered chips
-    document.querySelectorAll(".chip-grid").forEach((grid) => {
-        const group = grid.dataset.group;
-        if (!group) return;
-        grid.addEventListener("click", (e) => {
+    /* event delegation on the gen-grid container — handles clicks on chips
+       from any panel, dynamic or static. */
+    const genGrid = document.querySelector(".gen-grid");
+    if (genGrid && PAGE !== "dashboard") {
+        genGrid.addEventListener("click", (e) => {
             const chip = e.target.closest(".chip");
-            if (!chip || !grid.contains(chip)) return;
+            if (!chip) return;
+            const grid = chip.closest(".chip-grid");
+            if (!grid) return;
+            const group = grid.dataset.group;
+            if (!group) return;
             e.preventDefault();
             const val = chip.dataset.value;
             if (selections[group] === val) {
@@ -426,96 +442,255 @@
             }
             renderReadout();
         });
-    });
+    }
 
     if (director) director.addEventListener("input", renderReadout);
 
-    /* ---------- DASHBOARD ---------- */
-    const dashboardEl = document.querySelector(".dashboard");
-    if (dashboardEl) {
-        const slugify = (s) => s.trim().toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
+    /* ---------- RENDER PANELS ON IMAGE / VIDEO PAGES ----------
+       categories whose `showOn` includes the current page get prepended
+       to the gen-grid as their own gen-panel. static panels (color/
+       duration/dropzone/notes) follow them in the source order. */
+    const dynamicHost = document.getElementById("dynamicPanels");
 
-        const renderDashboardGroup = (group) => {
-            const panel = dashboardEl.querySelector(`.dash-panel[data-group="${group}"]`);
-            if (!panel) return;
-            const list = panel.querySelector(".dash-chips");
-            const chips = loadChips();
-            const items = chips[group] || [];
-            list.innerHTML = items.map((c) => `
-                <div class="dash-chip" data-value="${c.value}">
-                    <div class="dash-chip-head">
-                        <span class="dash-chip-label">${c.label}</span>
-                        <button class="dash-chip-remove" type="button" aria-label="Remove ${c.label}">×</button>
-                    </div>
-                    <div class="dash-chip-frag">${c.fragment}</div>
+    const renderGenPanels = () => {
+        if (!dynamicHost || PAGE === "dashboard") return;
+        const here = CONFIG.categories.filter((c) =>
+            Array.isArray(c.showOn) && c.showOn.includes(PAGE)
+        );
+        dynamicHost.innerHTML = here.map((cat) => `
+            <div class="gen-panel">
+                <div class="panel-bar">
+                    <span class="panel-tag"></span>
+                    <span class="panel-name">// ${escapeHTML(cat.label)}</span>
+                    <span class="panel-hint">${escapeHTML(cat.hint || "choose one")}</span>
                 </div>
-            `).join("") || `<div class="dash-empty">— no chips. add one below. —</div>`;
-        };
-
-        const renderAll = () => {
-            ["theme", "mood", "camera", "motion"].forEach(renderDashboardGroup);
-        };
-        renderAll();
-
-        // delegated handlers: remove chip
-        dashboardEl.addEventListener("click", (e) => {
-            const removeBtn = e.target.closest(".dash-chip-remove");
-            if (removeBtn) {
-                const chipEl = removeBtn.closest(".dash-chip");
-                const panel  = removeBtn.closest(".dash-panel");
-                if (!chipEl || !panel) return;
-                const group  = panel.dataset.group;
-                const value  = chipEl.dataset.value;
-                const chips  = loadChips();
-                chips[group] = (chips[group] || []).filter((c) => c.value !== value);
-                saveChips(chips);
-                renderDashboardGroup(group);
-                return;
-            }
-
-            const resetBtn = e.target.closest(".dash-reset");
-            if (resetBtn) {
-                const panel = resetBtn.closest(".dash-panel");
-                const group = panel.dataset.group;
-                const chips = loadChips();
-                chips[group] = JSON.parse(JSON.stringify(DEFAULT_CHIPS[group] || []));
-                saveChips(chips);
-                renderDashboardGroup(group);
-            }
+                <div class="chip-grid" data-group="${escapeHTML(cat.id)}">
+                    ${cat.chips.map((c) =>
+                        `<button class="chip" data-value="${escapeHTML(c.value)}">${escapeHTML(c.label)}</button>`
+                    ).join("")}
+                </div>
+            </div>
+        `).join("");
+        // renumber all panels in the grid (dynamic + static)
+        document.querySelectorAll(".gen-grid .gen-panel").forEach((panel, i) => {
+            const tag = panel.querySelector(".panel-tag");
+            if (tag) tag.textContent = String(i + 1).padStart(2, "0");
         });
+    };
 
-        // delegated form submissions: add chip
-        dashboardEl.addEventListener("submit", (e) => {
-            const form = e.target.closest(".dash-add");
-            if (!form) return;
+    /* ---------- DASHBOARD ----------
+       full CRUD on categories and chips. inputs save on debounced blur. */
+    const dashboardEl = document.querySelector(".dashboard");
+    const dashGrid    = document.getElementById("dashGrid");
+    const dashStatus  = document.getElementById("dashStatus");
+    const setStatus   = (msg) => { if (dashStatus) dashStatus.textContent = msg; };
+
+    const renderDashboard = () => {
+        if (!dashGrid) return;
+        if (!CONFIG.categories.length) {
+            dashGrid.innerHTML = `<div class="dash-empty">— no categories yet. add one above. —</div>`;
+            return;
+        }
+        dashGrid.innerHTML = CONFIG.categories.map((cat, ci) => `
+            <div class="dash-panel gen-panel" data-cat-id="${escapeHTML(cat.id)}">
+                <div class="panel-bar">
+                    <span class="panel-tag">${String(ci + 1).padStart(2, "0")}</span>
+                    <input class="dash-cat-label" value="${escapeHTML(cat.label)}" maxlength="32" aria-label="Category label"/>
+                    <button class="dash-cat-remove" type="button" aria-label="Delete category">delete</button>
+                </div>
+                <div class="dash-cat-meta">
+                    <span class="dash-cat-id">id: <code>${escapeHTML(cat.id)}</code></span>
+                    <label class="dash-toggle">
+                        <input type="checkbox" data-show="image" ${cat.showOn?.includes("image") ? "checked" : ""}/>
+                        <span>image</span>
+                    </label>
+                    <label class="dash-toggle">
+                        <input type="checkbox" data-show="video" ${cat.showOn?.includes("video") ? "checked" : ""}/>
+                        <span>video</span>
+                    </label>
+                </div>
+                <div class="dash-chips">
+                    ${(cat.chips || []).map((c, i) => `
+                        <div class="dash-chip" data-chip-i="${i}">
+                            <div class="dash-chip-head">
+                                <input class="dash-chip-label-input" value="${escapeHTML(c.label)}" maxlength="40" aria-label="Chip label"/>
+                                <button class="dash-chip-remove" type="button" aria-label="Remove chip">×</button>
+                            </div>
+                            <input class="dash-chip-frag-input" value="${escapeHTML(c.fragment)}" maxlength="240" aria-label="Prompt fragment"/>
+                        </div>
+                    `).join("") || `<div class="dash-empty">— no chips yet. add one below. —</div>`}
+                </div>
+                <form class="dash-add">
+                    <input name="label"    type="text" placeholder="NEW CHIP LABEL"            maxlength="32"  required/>
+                    <input name="fragment" type="text" placeholder="prompt fragment to inject" maxlength="200" required/>
+                    <button class="dash-add-btn" type="submit"><span>+ add chip</span></button>
+                </form>
+            </div>
+        `).join("");
+    };
+
+    const handleDashboardInput = (e) => {
+        const panel = e.target.closest(".dash-panel");
+        if (!panel) return;
+        const catId = panel.dataset.catId;
+        const cat = CONFIG.categories.find((c) => c.id === catId);
+        if (!cat) return;
+
+        if (e.target.classList.contains("dash-cat-label")) {
+            cat.label = e.target.value;
+            scheduleSave(setStatus);
+            return;
+        }
+        if (e.target.matches('.dash-toggle input[type="checkbox"]')) {
+            const which = e.target.dataset.show;
+            cat.showOn = cat.showOn || [];
+            const has = cat.showOn.includes(which);
+            if (e.target.checked && !has) cat.showOn.push(which);
+            if (!e.target.checked && has) cat.showOn = cat.showOn.filter((s) => s !== which);
+            scheduleSave(setStatus);
+            return;
+        }
+        const chipEl = e.target.closest(".dash-chip");
+        if (chipEl) {
+            const i = parseInt(chipEl.dataset.chipI, 10);
+            const chip = cat.chips[i];
+            if (!chip) return;
+            if (e.target.classList.contains("dash-chip-label-input")) {
+                chip.label = e.target.value;
+                scheduleSave(setStatus);
+            } else if (e.target.classList.contains("dash-chip-frag-input")) {
+                chip.fragment = e.target.value;
+                scheduleSave(setStatus);
+            }
+        }
+    };
+
+    const handleDashboardClick = (e) => {
+        const panel = e.target.closest(".dash-panel");
+
+        if (e.target.closest(".dash-chip-remove")) {
+            if (!panel) return;
+            const chipEl = e.target.closest(".dash-chip");
+            const i = parseInt(chipEl.dataset.chipI, 10);
+            const cat = CONFIG.categories.find((c) => c.id === panel.dataset.catId);
+            if (!cat) return;
+            cat.chips.splice(i, 1);
+            renderDashboard();
+            scheduleSave(setStatus);
+            return;
+        }
+
+        if (e.target.closest(".dash-cat-remove")) {
+            if (!panel) return;
+            if (!confirm(`Delete the "${panel.querySelector(".dash-cat-label").value}" category and all its chips?`)) return;
+            CONFIG.categories = CONFIG.categories.filter((c) => c.id !== panel.dataset.catId);
+            renderDashboard();
+            scheduleSave(setStatus);
+            return;
+        }
+
+        if (e.target.closest("#dashResetAll")) {
+            if (!confirm("Reset everything to defaults? Your custom chips will be lost.")) return;
+            setStatus("resetting…");
+            apiReset()
+                .then((data) => { CONFIG = data; cacheWrite(CONFIG); renderDashboard(); setStatus("reset to defaults"); })
+                .catch(() => setStatus("reset failed"));
+        }
+    };
+
+    const handleDashboardSubmit = (e) => {
+        const form = e.target.closest(".dash-add");
+        if (form) {
             e.preventDefault();
             const panel = form.closest(".dash-panel");
-            const group = panel.dataset.group;
+            const cat = CONFIG.categories.find((c) => c.id === panel.dataset.catId);
+            if (!cat) return;
             const labelInput = form.querySelector('[name="label"]');
             const fragInput  = form.querySelector('[name="fragment"]');
-            const rawLabel = labelInput.value.trim();
-            const rawFrag  = fragInput.value.trim();
-            if (!rawLabel || !rawFrag) return;
-            const value = slugify(rawLabel);
+            const label = labelInput.value.trim();
+            const frag  = fragInput.value.trim();
+            if (!label || !frag) return;
+            const value = slugify(label);
             if (!value) return;
-            const chips = loadChips();
-            chips[group] = chips[group] || [];
-            if (chips[group].some((c) => c.value === value)) {
-                // already exists — flash the existing one
-                const existing = panel.querySelector(`.dash-chip[data-value="${value}"]`);
-                if (existing) {
-                    existing.classList.add("dash-chip--flash");
-                    setTimeout(() => existing.classList.remove("dash-chip--flash"), 800);
-                }
+            if (cat.chips.some((c) => c.value === value)) {
+                setStatus(`"${label}" already exists in this category`);
                 return;
             }
-            chips[group].push({ value, label: rawLabel.toUpperCase(), fragment: rawFrag });
-            saveChips(chips);
-            renderDashboardGroup(group);
+            cat.chips.push({ value, label: label.toUpperCase(), fragment: frag });
+            renderDashboard();
+            scheduleSave(setStatus);
+            return;
+        }
+
+        const newCatForm = e.target.closest("#dashNewCategory");
+        if (newCatForm) {
+            e.preventDefault();
+            const labelInput = newCatForm.querySelector('[name="label"]');
+            const hintInput  = newCatForm.querySelector('[name="hint"]');
+            const onImage    = newCatForm.querySelector('[name="image"]').checked;
+            const onVideo    = newCatForm.querySelector('[name="video"]').checked;
+            const label = labelInput.value.trim();
+            if (!label) return;
+            const id = slugify(label);
+            if (!id) return;
+            if (CONFIG.categories.some((c) => c.id === id)) {
+                setStatus(`category "${id}" already exists`);
+                return;
+            }
+            const showOn = [];
+            if (onImage) showOn.push("image");
+            if (onVideo) showOn.push("video");
+            CONFIG.categories.push({
+                id,
+                label: label.toUpperCase(),
+                hint: hintInput.value.trim() || "choose one",
+                showOn: showOn.length ? showOn : ["image", "video"],
+                chips: [],
+            });
+            renderDashboard();
+            scheduleSave(setStatus);
             labelInput.value = "";
-            fragInput.value  = "";
-            labelInput.focus();
-        });
+            hintInput.value  = "";
+        }
+    };
+
+    if (dashboardEl) {
+        dashboardEl.addEventListener("input",   handleDashboardInput);
+        dashboardEl.addEventListener("change",  handleDashboardInput);
+        dashboardEl.addEventListener("click",   handleDashboardClick);
+        dashboardEl.addEventListener("submit",  handleDashboardSubmit);
+    }
+
+    /* ---------- BOOTSTRAP ----------
+       paint instantly from cache; then refresh from API in background.   */
+    const paint = () => {
+        if (PAGE === "dashboard") renderDashboard();
+        else renderGenPanels();
+    };
+
+    const cached = cacheRead();
+    if (cached?.categories) {
+        CONFIG = cached;
+        paint();
+    }
+
+    if (PAGE) {
+        apiGet()
+            .then((data) => {
+                if (data?.categories) {
+                    CONFIG = data;
+                    cacheWrite(CONFIG);
+                    paint();
+                    setStatus("loaded");
+                }
+            })
+            .catch(() => {
+                if (!cached) {
+                    // last-ditch: empty state, dashboard will let user add things
+                    paint();
+                }
+                setStatus("offline mode");
+            });
     }
 
     /* ---------- DROPZONE ---------- */
