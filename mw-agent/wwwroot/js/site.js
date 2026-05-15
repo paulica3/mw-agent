@@ -323,7 +323,7 @@
             high_contrast: "high contrast punchy grade",
         },
         duration: {
-            "2": "2s clip", "4": "4s clip", "8": "8s clip", "12": "12s clip",
+            "5": "5s clip", "10": "10s clip",
         },
     };
 
