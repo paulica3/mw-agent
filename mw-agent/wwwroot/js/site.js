@@ -1552,9 +1552,9 @@
 
     /* ---------- EASTER EGG: RS ⨯ MD ----------
        type "rsmd" anywhere on the site (not in input fields) → celebratory
-       overlay with both flags. available to all logged-in users.          */
+       overlay with both flags. dev-only — operator login never sees this. */
     const rsmdEgg = document.getElementById("rsmdEgg");
-    if (rsmdEgg) {
+    if (rsmdEgg && isDev()) {
         const inputField = (el) => {
             if (!el) return false;
             const tag = (el.tagName || "").toLowerCase();
