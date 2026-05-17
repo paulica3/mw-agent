@@ -880,14 +880,19 @@
     // per-page polling config — different endpoints, different result fields, different file ext
     const POLL_CONFIG = {
         video: {
-            statusUrl: (id, kind) => `/api/status?id=${encodeURIComponent(id)}&kind=${encodeURIComponent(kind)}`,
+            statusUrl: ({id, kind}) =>
+                `/api/status?id=${encodeURIComponent(id)}&kind=${encodeURIComponent(kind)}`,
             resultKey: "videoUrl",
             mediaTag:  (url) => `<video src="${url}" controls autoplay loop playsinline></video>`,
             ext:       "mp4",
             providerName: "kling",
         },
         image: {
-            statusUrl: (id) => `/api/image?id=${encodeURIComponent(id)}`,
+            // bfl routes tasks by region — pollingUrl from POST response targets
+            // the exact regional endpoint where the task was created.
+            statusUrl: ({id, pollingUrl}) => pollingUrl
+                ? `/api/image?pollingUrl=${encodeURIComponent(pollingUrl)}`
+                : `/api/image?id=${encodeURIComponent(id)}`,
             resultKey: "imageUrl",
             mediaTag:  (url) => `<img src="${url}" alt="generated image"/>`,
             ext:       "png",
@@ -895,7 +900,7 @@
         },
     };
 
-    const pollStatus = (taskId, kind, startedAt, page) => {
+    const pollStatus = (taskInfo, startedAt, page) => {
         const cfg = POLL_CONFIG[page] || POLL_CONFIG.video;
         if (Date.now() - startedAt > MAX_WAIT_MS) {
             modalError.textContent = "render timed out after 5 minutes — try again";
@@ -903,7 +908,7 @@
             if (activeTimerId) { clearInterval(activeTimerId); activeTimerId = null; }
             return;
         }
-        fetch(cfg.statusUrl(taskId, kind))
+        fetch(cfg.statusUrl(taskInfo))
             .then((r) => r.json())
             .then((data) => {
                 if (data.error) {
@@ -915,7 +920,7 @@
                 const mediaUrl = data[cfg.resultKey];
                 if (data.status === "succeeded" && mediaUrl) {
                     if (activeTimerId) { clearInterval(activeTimerId); activeTimerId = null; }
-                    const filename = `xperiment_${taskId}.${cfg.ext}`;
+                    const filename = `xperiment_${taskInfo.id}.${cfg.ext}`;
                     modalResult.innerHTML = cfg.mediaTag(mediaUrl);
                     modalDL.dataset.videoUrl = mediaUrl;
                     modalDL.dataset.filename = filename;
@@ -931,7 +936,7 @@
                     return;
                 }
                 if (modalStatus) modalStatus.textContent = `// ${data.message || "rendering..."}`;
-                activePollId = setTimeout(() => pollStatus(taskId, kind, startedAt, page), POLL_INTERVAL);
+                activePollId = setTimeout(() => pollStatus(taskInfo, startedAt, page), POLL_INTERVAL);
             })
             .catch((err) => {
                 modalError.textContent = `polling failed: ${err.message}`;
@@ -994,7 +999,15 @@
                 if (modalStatus) modalStatus.textContent = PAGE === "image"
                     ? "// task accepted. waiting for pixels..."
                     : "// task accepted. waiting for frames...";
-                pollStatus(data.taskId, data.kind || "text2video", Date.now(), PAGE);
+                pollStatus(
+                    {
+                        id: data.taskId,
+                        kind: data.kind || "text2video",
+                        pollingUrl: data.pollingUrl,
+                    },
+                    Date.now(),
+                    PAGE
+                );
             } catch (err) {
                 modalError.textContent = err.message || "request failed";
                 setPane("error");

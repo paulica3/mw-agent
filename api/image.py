@@ -123,12 +123,16 @@ class handler(BaseHTTPRequestHandler):
 
             resp = _bfl_request("POST", f"/v1/{BFL_MODEL}", payload)
 
-            task_id = resp.get("id")
+            task_id     = resp.get("id")
+            polling_url = resp.get("polling_url")  # region-specific GET endpoint
             if not task_id:
                 self._send(502, {"error": f"bfl response missing id: {resp}"})
                 return
 
-            self._send(200, {"taskId": task_id})
+            # we hand pollingUrl back to the client so subsequent polls hit
+            # the exact regional endpoint where the task was created — bfl
+            # load-balances by region and a "wrong" region returns 404.
+            self._send(200, {"taskId": task_id, "pollingUrl": polling_url})
 
         except urllib.error.HTTPError as e:
             try:
@@ -148,12 +152,31 @@ class handler(BaseHTTPRequestHandler):
         try:
             qs = urllib.parse.urlparse(self.path).query
             params = urllib.parse.parse_qs(qs)
-            task_id = (params.get("id") or [""])[0]
-            if not task_id:
-                self._send(400, {"error": "missing id"})
-                return
+            polling_url = (params.get("pollingUrl") or [""])[0]
+            task_id     = (params.get("id") or [""])[0]
 
-            resp = _bfl_request("GET", f"/v1/get_result?id={urllib.parse.quote(task_id)}")
+            if polling_url:
+                # validate it's a real bfl url (SSRF guard)
+                parsed = urllib.parse.urlparse(polling_url)
+                host = (parsed.hostname or "").lower()
+                if parsed.scheme != "https" or not host.endswith("bfl.ai"):
+                    self._send(400, {"error": "invalid pollingUrl host"})
+                    return
+                req = urllib.request.Request(
+                    polling_url,
+                    headers={
+                        "accept": "application/json",
+                        "x-key": BFL_API_KEY,
+                    },
+                )
+                with urllib.request.urlopen(req, timeout=15) as r:
+                    resp = json.loads(r.read().decode("utf-8"))
+            elif task_id:
+                # fallback: best-effort against default region (may 404 if task is elsewhere)
+                resp = _bfl_request("GET", f"/v1/get_result?id={urllib.parse.quote(task_id)}")
+            else:
+                self._send(400, {"error": "missing id or pollingUrl"})
+                return
 
             raw_status = (resp.get("status") or "").lower()
             status = STATUS_MAP.get(raw_status, "processing")
