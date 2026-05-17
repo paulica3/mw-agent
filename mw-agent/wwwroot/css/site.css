@@ -2148,8 +2148,29 @@ body.cursor-hot .cursor-star svg {
     text-transform: lowercase;
     letter-spacing: 0.02em;
 }
-[data-theme="bloom"] .sub-plan-pricetag { color: var(--accent); }
-[data-theme="bloom"] .sub-plan-amount   { color: var(--accent); }
+[data-theme="bloom"] .sub-plan-pricetag {
+    font-family: var(--serif);
+    font-weight: 500;
+    color: var(--accent);
+    letter-spacing: 0;
+}
+[data-theme="bloom"] .sub-plan-currency {
+    font-family: var(--serif);
+    font-weight: 400;
+    color: var(--ink-dim);
+}
+[data-theme="bloom"] .sub-plan-amount {
+    font-family: var(--serif);
+    font-weight: 500;
+    color: var(--accent);
+    letter-spacing: 0;
+}
+[data-theme="bloom"] .sub-plan-period {
+    font-family: var(--sans);
+    text-transform: lowercase;
+    letter-spacing: 0.04em;
+    color: var(--ink-dim);
+}
 [data-theme="bloom"] .sub-plan-meta     { font-family: var(--sans); text-transform: lowercase; letter-spacing: 0.04em; }
 [data-theme="bloom"] .sub-plan-meta strong { color: var(--ink); font-weight: 500; }
 [data-theme="bloom"] .sub-btn {
