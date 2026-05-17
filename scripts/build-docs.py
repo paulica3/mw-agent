@@ -31,10 +31,11 @@ LAYOUT  = PAGES / "Shared" / "_Layout.cshtml"
 OUT     = ROOT / "docs"
 
 PAGE_FILES = {
-    "index":     PAGES / "Index.cshtml",
-    "image":     PAGES / "Image.cshtml",
-    "video":     PAGES / "Video.cshtml",
-    "dashboard": PAGES / "Dashboard.cshtml",
+    "index":        PAGES / "Index.cshtml",
+    "image":        PAGES / "Image.cshtml",
+    "video":        PAGES / "Video.cshtml",
+    "dashboard":    PAGES / "Dashboard.cshtml",
+    "subscription": PAGES / "Subscription.cshtml",
 }
 
 
@@ -64,10 +65,11 @@ YEAR_SCRIPT = (
 
 # substitutions applied to both layout and page bodies
 COMMON_REPLACEMENTS = [
-    ('asp-page="/Index"',     'href="index.html"'),
-    ('asp-page="/Image"',     'href="image.html"'),
-    ('asp-page="/Video"',     'href="video.html"'),
-    ('asp-page="/Dashboard"', 'href="dashboard.html"'),
+    ('asp-page="/Index"',        'href="index.html"'),
+    ('asp-page="/Image"',        'href="image.html"'),
+    ('asp-page="/Video"',        'href="video.html"'),
+    ('asp-page="/Dashboard"',    'href="dashboard.html"'),
+    ('asp-page="/Subscription"', 'href="subscription.html"'),
     ('~/favicon.svg',     'favicon.svg'),
     ('~/css/site.css',    'css/site.css'),
     ('~/js/site.js',      'js/site.js'),

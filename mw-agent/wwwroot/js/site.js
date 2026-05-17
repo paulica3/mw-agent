@@ -1065,4 +1065,34 @@
             }
         });
     }
+
+    /* ---------- SUBSCRIPTION TOAST ----------
+       placeholder buttons on the Subscription page surface a non-blocking
+       toast since stripe isn't wired up yet. */
+    const subToast = document.getElementById("subToast");
+    const TOAST_MESSAGES = {
+        manage: "// stripe integration coming soon · payment page will live here",
+        cancel: "// cancellation flow will route through stripe customer portal",
+    };
+    let toastTimer = null;
+    const showToast = (msg) => {
+        if (!subToast) return;
+        subToast.textContent = msg;
+        subToast.hidden = false;
+        // force reflow so the transition triggers when adding the class
+        void subToast.offsetWidth;
+        subToast.classList.add("is-visible");
+        if (toastTimer) clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => {
+            subToast.classList.remove("is-visible");
+            setTimeout(() => { subToast.hidden = true; }, 350);
+        }, 2800);
+    };
+    document.addEventListener("click", (e) => {
+        const btn = e.target.closest("[data-action]");
+        if (!btn) return;
+        const action = btn.dataset.action;
+        const msg = TOAST_MESSAGES[action];
+        if (msg) showToast(msg);
+    });
 })();

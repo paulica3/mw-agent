@@ -1,0 +1,122 @@
+@page
+@model SubscriptionModel
+@{
+    ViewData["Title"] = "SUBSCRIPTION";
+}
+
+<section class="gen subscription">
+    <div class="gen-head">
+        <div class="gen-crumbs">/ <a asp-page="/Index">HOME</a> / <span class="hl">CONTROL_PANEL</span></div>
+        <h1 class="gen-title glitch" data-text="CONTROL_PANEL">CONTROL_PANEL</h1>
+        <p class="gen-lede">your signal access. your numbers. your bills.</p>
+    </div>
+
+    <!-- featured plan card -->
+    <div class="sub-plan gen-panel sub-plan--current">
+        <div class="panel-bar">
+            <span class="panel-tag">★</span>
+            <span class="panel-name">// CURRENT_PLAN</span>
+            <span class="sub-status sub-status--active">active</span>
+        </div>
+        <div class="sub-plan-body">
+            <div class="sub-plan-headline">
+                <div class="sub-plan-name glitch" data-text="SIGNAL_PASS">SIGNAL_PASS</div>
+                <div class="sub-plan-tagline">// everything unlocked · no caps</div>
+            </div>
+            <div class="sub-plan-pricetag">
+                <span class="sub-plan-currency">$</span>
+                <span class="sub-plan-amount">19</span>
+                <span class="sub-plan-period">/ mo</span>
+            </div>
+        </div>
+        <div class="sub-plan-meta">
+            <span class="sub-meta-row">renews on <strong>may 28, 2026</strong></span>
+            <span class="sub-meta-sep">·</span>
+            <span class="sub-meta-row">card ending <strong>•••• 4242</strong></span>
+            <span class="sub-meta-sep">·</span>
+            <span class="sub-meta-row">member since <strong>jan 2026</strong></span>
+        </div>
+        <div class="sub-plan-actions">
+            <button class="sub-btn sub-btn--ghost" data-action="manage">manage payment</button>
+            <button class="sub-btn sub-btn--danger" data-action="cancel">cancel subscription</button>
+        </div>
+    </div>
+
+    <!-- usage stats -->
+    <div class="sub-stats">
+        <div class="sub-stat gen-panel">
+            <div class="sub-stat-label">// VIDEOS_RENDERED</div>
+            <div class="sub-stat-value">47</div>
+            <div class="sub-stat-hint">all-time · via kling</div>
+        </div>
+        <div class="sub-stat gen-panel">
+            <div class="sub-stat-label">// IMAGES_GENERATED</div>
+            <div class="sub-stat-value">132</div>
+            <div class="sub-stat-hint">all-time · via flux ultra</div>
+        </div>
+        <div class="sub-stat gen-panel">
+            <div class="sub-stat-label">// THIS_MONTH</div>
+            <div class="sub-stat-value">18</div>
+            <div class="sub-stat-hint">renders since may 1</div>
+        </div>
+    </div>
+
+    <div class="sub-grid">
+        <!-- what's included -->
+        <div class="sub-features gen-panel">
+            <div class="panel-bar">
+                <span class="panel-tag">✓</span>
+                <span class="panel-name">// INCLUDED</span>
+                <span class="panel-hint">everything you get with signal_pass</span>
+            </div>
+            <ul class="sub-feature-list">
+                <li><span class="sub-feature-mark">▸</span> unlimited video renders via Kling</li>
+                <li><span class="sub-feature-mark">▸</span> unlimited image generations via Flux Pro Ultra</li>
+                <li><span class="sub-feature-mark">▸</span> image &amp; video reference uploads (image-to-video, image-to-image)</li>
+                <li><span class="sub-feature-mark">▸</span> fully customizable chip menu (Dashboard)</li>
+                <li><span class="sub-feature-mark">▸</span> editable assembled-signal prompt</li>
+                <li><span class="sub-feature-mark">▸</span> priority render queue · faster turnaround</li>
+                <li><span class="sub-feature-mark">▸</span> full-quality downloads · no watermark · no compression</li>
+                <li><span class="sub-feature-mark">▸</span> album-cover + cinematic aspect ratios</li>
+                <li><span class="sub-feature-mark">▸</span> both chaos &amp; bloom interface themes</li>
+                <li><span class="sub-feature-mark">▸</span> project memory &amp; reference recall <span class="sub-feature-soon">soon</span></li>
+            </ul>
+        </div>
+
+        <!-- billing history -->
+        <div class="sub-billing gen-panel">
+            <div class="panel-bar">
+                <span class="panel-tag">$</span>
+                <span class="panel-name">// BILLING_HISTORY</span>
+                <span class="panel-hint">last 6 months</span>
+            </div>
+            <div class="sub-billing-table">
+                <div class="sub-billing-row">
+                    <span class="sub-billing-date">apr 28, 2026</span>
+                    <span class="sub-billing-amount">$19.00</span>
+                    <span class="sub-billing-status sub-billing-status--paid">paid</span>
+                </div>
+                <div class="sub-billing-row">
+                    <span class="sub-billing-date">mar 28, 2026</span>
+                    <span class="sub-billing-amount">$19.00</span>
+                    <span class="sub-billing-status sub-billing-status--paid">paid</span>
+                </div>
+                <div class="sub-billing-row">
+                    <span class="sub-billing-date">feb 28, 2026</span>
+                    <span class="sub-billing-amount">$19.00</span>
+                    <span class="sub-billing-status sub-billing-status--paid">paid</span>
+                </div>
+                <div class="sub-billing-row">
+                    <span class="sub-billing-date">jan 28, 2026</span>
+                    <span class="sub-billing-amount">$19.00</span>
+                    <span class="sub-billing-status sub-billing-status--paid">paid</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="sub-footer-note">// payment processing via stripe · integration coming soon</div>
+</section>
+
+<!-- non-blocking toast for placeholder buttons -->
+<div class="sub-toast" id="subToast" hidden></div>
