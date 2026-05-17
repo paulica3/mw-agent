@@ -314,7 +314,7 @@
                            : document.body.classList.contains("page-video")     ? "video"
                            : null;
 
-    // fragments for the special hardcoded groups (color swatches, duration numerics)
+    // fragments for the special hardcoded groups (color swatches, duration numerics, image size)
     const STATIC_FRAGMENTS = {
         color: {
             cold_blue:     "cold blue color grade",
@@ -324,6 +324,11 @@
         },
         duration: {
             "5": "5s clip", "10": "10s clip",
+        },
+        // size doesn't add prompt text (it's only a config parameter for the API),
+        // but listing keys here so the readout doesn't show "undefined" for them
+        size: {
+            "1:1": "", "16:9": "", "9:16": "", "21:9": "", "4:3": "", "3:4": "",
         },
     };
 
@@ -853,7 +858,8 @@
         const file = fileInput?.files?.[0];
         const req = {
             prompt,
-            duration: selections.duration || "5",
+            duration:    selections.duration || "5",     // video only
+            aspectRatio: selections.size     || "1:1",    // image only
             page: PAGE,
         };
         if (file) {
@@ -871,14 +877,33 @@
     const POLL_INTERVAL = 5000;
     const MAX_WAIT_MS   = 5 * 60 * 1000;  // 5 minutes
 
-    const pollStatus = (taskId, kind, startedAt) => {
+    // per-page polling config — different endpoints, different result fields, different file ext
+    const POLL_CONFIG = {
+        video: {
+            statusUrl: (id, kind) => `/api/status?id=${encodeURIComponent(id)}&kind=${encodeURIComponent(kind)}`,
+            resultKey: "videoUrl",
+            mediaTag:  (url) => `<video src="${url}" controls autoplay loop playsinline></video>`,
+            ext:       "mp4",
+            providerName: "kling",
+        },
+        image: {
+            statusUrl: (id) => `/api/image?id=${encodeURIComponent(id)}`,
+            resultKey: "imageUrl",
+            mediaTag:  (url) => `<img src="${url}" alt="generated image"/>`,
+            ext:       "png",
+            providerName: "bfl",
+        },
+    };
+
+    const pollStatus = (taskId, kind, startedAt, page) => {
+        const cfg = POLL_CONFIG[page] || POLL_CONFIG.video;
         if (Date.now() - startedAt > MAX_WAIT_MS) {
             modalError.textContent = "render timed out after 5 minutes — try again";
             setPane("error");
             if (activeTimerId) { clearInterval(activeTimerId); activeTimerId = null; }
             return;
         }
-        fetch(`/api/status?id=${encodeURIComponent(taskId)}&kind=${encodeURIComponent(kind)}`)
+        fetch(cfg.statusUrl(taskId, kind))
             .then((r) => r.json())
             .then((data) => {
                 if (data.error) {
@@ -887,28 +912,26 @@
                     if (activeTimerId) { clearInterval(activeTimerId); activeTimerId = null; }
                     return;
                 }
-                if (data.status === "succeeded" && data.videoUrl) {
+                const mediaUrl = data[cfg.resultKey];
+                if (data.status === "succeeded" && mediaUrl) {
                     if (activeTimerId) { clearInterval(activeTimerId); activeTimerId = null; }
-                    const filename = `xperiment_${taskId}.mp4`;
-                    // inline player streams directly from kling's cdn (fast)
-                    modalResult.innerHTML = `<video src="${data.videoUrl}" controls autoplay loop playsinline></video>`;
-                    // stash for the click handler — actual download happens via blob fetch
-                    modalDL.dataset.videoUrl = data.videoUrl;
+                    const filename = `xperiment_${taskId}.${cfg.ext}`;
+                    modalResult.innerHTML = cfg.mediaTag(mediaUrl);
+                    modalDL.dataset.videoUrl = mediaUrl;
                     modalDL.dataset.filename = filename;
-                    modalDL.removeAttribute("href");          // disable default nav
-                    modalDL.removeAttribute("download");      // we trigger save manually
+                    modalDL.removeAttribute("href");
+                    modalDL.removeAttribute("download");
                     setPane("success");
                     return;
                 }
                 if (data.status === "failed") {
-                    modalError.textContent = data.message || "kling rejected the render";
+                    modalError.textContent = data.message || `${cfg.providerName} rejected the render`;
                     setPane("error");
                     if (activeTimerId) { clearInterval(activeTimerId); activeTimerId = null; }
                     return;
                 }
-                // still processing — update status text, keep polling
                 if (modalStatus) modalStatus.textContent = `// ${data.message || "rendering..."}`;
-                activePollId = setTimeout(() => pollStatus(taskId, kind, startedAt), POLL_INTERVAL);
+                activePollId = setTimeout(() => pollStatus(taskId, kind, startedAt, page), POLL_INTERVAL);
             })
             .catch((err) => {
                 modalError.textContent = `polling failed: ${err.message}`;
@@ -918,11 +941,16 @@
     };
 
     /* ---------- WIRE THE GENERATE BUTTON ---------- */
+    const GENERATE_ENDPOINTS = {
+        video: { url: "/api/generate", provider: "kling" },
+        image: { url: "/api/image",    provider: "bfl"   },
+    };
+
     const genBtn = document.getElementById("generateBtn");
     if (genBtn) {
         genBtn.addEventListener("click", async () => {
-            // image page isn't wired to a backend yet
-            if (PAGE === "image") {
+            const endpoint = GENERATE_ENDPOINTS[PAGE];
+            if (!endpoint) {
                 openModal("comingSoon");
                 return;
             }
@@ -935,14 +963,23 @@
                 return;
             }
 
+            // image page requires a size selection
+            if (PAGE === "image" && !selections.size) {
+                openModal("error");
+                modalError.textContent = "pick an output size (album cover, landscape, etc.) before rendering";
+                return;
+            }
+
             openModal("loading");
             if (modalPrompt) modalPrompt.textContent = prompt;
-            if (modalStatus) modalStatus.textContent = "// uploading signal to kling...";
+            if (modalStatus) modalStatus.textContent = `// uploading signal to ${endpoint.provider}...`;
+            const estEl = document.getElementById("genModalEst");
+            if (estEl) estEl.textContent = PAGE === "image" ? "est: 10-30s" : "est: 60-120s";
             startTimer();
 
             try {
                 const body = await collectRequest();
-                const r = await fetch("/api/generate", {
+                const r = await fetch(endpoint.url, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(body),
@@ -954,8 +991,10 @@
                     if (activeTimerId) { clearInterval(activeTimerId); activeTimerId = null; }
                     return;
                 }
-                if (modalStatus) modalStatus.textContent = "// task accepted. waiting for frames...";
-                pollStatus(data.taskId, data.kind || "text2video", Date.now());
+                if (modalStatus) modalStatus.textContent = PAGE === "image"
+                    ? "// task accepted. waiting for pixels..."
+                    : "// task accepted. waiting for frames...";
+                pollStatus(data.taskId, data.kind || "text2video", Date.now(), PAGE);
             } catch (err) {
                 modalError.textContent = err.message || "request failed";
                 setPane("error");

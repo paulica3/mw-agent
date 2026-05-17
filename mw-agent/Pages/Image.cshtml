@@ -15,7 +15,7 @@
         <!-- panels rendered by JS from the chip store, filtered to showOn:image -->
         <div id="dynamicPanels" class="contents"></div>
 
-        <!-- static panels: color grade (special swatches), dropzone, notes -->
+        <!-- static panels: color grade (special swatches), output size, dropzone, notes -->
         <div class="gen-panel">
             <div class="panel-bar">
                 <span class="panel-tag"></span>
@@ -27,6 +27,22 @@
                 <button class="chip chip--swatch" data-value="warm_golden"><span class="sw sw-warm"></span>WARM_GOLDEN</button>
                 <button class="chip chip--swatch" data-value="desaturated"><span class="sw sw-desat"></span>DESATURATED</button>
                 <button class="chip chip--swatch" data-value="high_contrast"><span class="sw sw-contrast"></span>HIGH_CONTRAST</button>
+            </div>
+        </div>
+
+        <div class="gen-panel">
+            <div class="panel-bar">
+                <span class="panel-tag"></span>
+                <span class="panel-name">// OUTPUT_SIZE</span>
+                <span class="panel-hint">aspect &amp; ratio of the frame</span>
+            </div>
+            <div class="chip-grid" data-group="size">
+                <button class="chip" data-value="1:1">ALBUM_COVER (1:1)</button>
+                <button class="chip" data-value="16:9">LANDSCAPE_HD (16:9)</button>
+                <button class="chip" data-value="9:16">PORTRAIT (9:16)</button>
+                <button class="chip" data-value="21:9">CINEMA_WIDE (21:9)</button>
+                <button class="chip" data-value="4:3">TRADITIONAL (4:3)</button>
+                <button class="chip" data-value="3:4">POSTER (3:4)</button>
             </div>
         </div>
 
