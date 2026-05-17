@@ -12,10 +12,15 @@ to prevent SSRF. Anything else gets a 403.
 """
 
 import json
+import os
+import sys
 import urllib.error
 import urllib.parse
 import urllib.request
 from http.server import BaseHTTPRequestHandler
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from _auth import check_request
 
 
 # kling videos come from a few Aliyun-backed CDNs depending on region / model
@@ -60,6 +65,8 @@ class handler(BaseHTTPRequestHandler):
         self.wfile.write(payload)
 
     def do_GET(self) -> None:
+        if not check_request(self):
+            return
         try:
             qs = urllib.parse.urlparse(self.path).query
             params = urllib.parse.parse_qs(qs)

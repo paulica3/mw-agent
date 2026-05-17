@@ -19,9 +19,13 @@ HTTP REST API directly via urllib.
 import json
 import os
 import pathlib
+import sys
 import urllib.error
 import urllib.request
 from http.server import BaseHTTPRequestHandler
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from _auth import check_request
 
 
 # accept either set of env var names — vercel has used both over time
@@ -125,6 +129,8 @@ class handler(BaseHTTPRequestHandler):
         self.wfile.write(payload)
 
     def do_GET(self) -> None:
+        if not check_request(self):
+            return
         try:
             stored = _kv_get(STORE_KEY)
             if stored:
@@ -135,6 +141,8 @@ class handler(BaseHTTPRequestHandler):
             self._send(500, {"error": str(e)})
 
     def do_POST(self) -> None:
+        if not check_request(self):
+            return
         try:
             length = int(self.headers.get("Content-Length", 0) or 0)
             if length <= 0 or length > 200_000:  # 200KB ceiling, way more than needed
@@ -156,6 +164,8 @@ class handler(BaseHTTPRequestHandler):
             self._send(500, {"error": str(e)})
 
     def do_DELETE(self) -> None:
+        if not check_request(self):
+            return
         try:
             _kv_del(STORE_KEY)
             self._send(200, _load_defaults())

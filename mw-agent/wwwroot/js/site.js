@@ -5,6 +5,38 @@
 (() => {
     "use strict";
 
+    /* ---------- AUTH ----------
+       token lives in localStorage. every fetch to /api/* gets it as a Bearer
+       header via a global fetch wrapper. a 401 from any endpoint clears the
+       token and bounces back to /login. */
+    const AUTH_TOKEN_KEY = "xa-token";
+    const getToken = () => { try { return localStorage.getItem(AUTH_TOKEN_KEY); } catch (e) { return null; } };
+    const setToken = (t) => { try { localStorage.setItem(AUTH_TOKEN_KEY, t); } catch (e) {} };
+    const clearToken = () => { try { localStorage.removeItem(AUTH_TOKEN_KEY); } catch (e) {} };
+
+    const isLoginPage = () => location.pathname.toLowerCase().indexOf("login") !== -1;
+
+    // wrap fetch so every /api/* call automatically carries the token
+    const _origFetch = window.fetch.bind(window);
+    window.fetch = (input, init) => {
+        const url = typeof input === "string" ? input : (input?.url || "");
+        const isApi = url.startsWith("/api/");
+        if (!isApi) return _origFetch(input, init);
+        const token = getToken();
+        const opts = Object.assign({}, init || {});
+        opts.headers = new Headers(opts.headers || {});
+        if (token) opts.headers.set("Authorization", `Bearer ${token}`);
+        return _origFetch(input, opts).then((resp) => {
+            // login endpoint can legitimately 401 — only auto-bounce for other endpoints
+            if (resp.status === 401 && !url.includes("/api/login") && !isLoginPage()) {
+                clearToken();
+                const from = encodeURIComponent(location.pathname + location.search);
+                location.replace(`/login?from=${from}`);
+            }
+            return resp;
+        });
+    };
+
     /* ---------- THEME TOGGLE ---------- */
     const root = document.documentElement;
     const themeBtn = document.getElementById("themeToggle");
@@ -1145,4 +1177,77 @@
         const msg = TOAST_MESSAGES[action];
         if (msg) showToast(msg);
     });
+
+    /* ---------- LOGIN FORM ---------- */
+    const loginForm = document.getElementById("loginForm");
+    if (loginForm) {
+        // if already logged in, bounce out
+        if (getToken()) {
+            const from = new URLSearchParams(location.search).get("from") || "/";
+            location.replace(from);
+        }
+
+        const pwInput = document.getElementById("loginPassword");
+        const submit  = document.getElementById("loginSubmit");
+        const errEl   = document.getElementById("loginError");
+
+        const showErr = (msg) => {
+            if (!errEl) return;
+            errEl.textContent = "// " + msg;
+            errEl.hidden = false;
+        };
+        const clearErr = () => {
+            if (errEl) { errEl.hidden = true; errEl.textContent = ""; }
+        };
+
+        pwInput?.addEventListener("input", clearErr);
+
+        loginForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const password = (pwInput?.value || "").trim();
+            if (!password) return;
+
+            const original = submit?.querySelector(".login-submit-label")?.textContent;
+            if (submit) submit.disabled = true;
+            if (submit?.querySelector(".login-submit-label"))
+                submit.querySelector(".login-submit-label").textContent = "VERIFYING...";
+
+            try {
+                // fetch the login endpoint directly (bypass our wrapper's redirect-on-401)
+                const r = await _origFetch("/api/login", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ password }),
+                });
+                const data = await r.json().catch(() => ({}));
+                if (!r.ok || !data.token) {
+                    showErr(data.error || "access denied");
+                    if (submit) submit.disabled = false;
+                    if (submit?.querySelector(".login-submit-label") && original)
+                        submit.querySelector(".login-submit-label").textContent = original;
+                    pwInput?.select();
+                    return;
+                }
+                setToken(data.token);
+                const from = new URLSearchParams(location.search).get("from") || "/";
+                location.replace(from);
+            } catch (err) {
+                showErr(err.message || "network error");
+                if (submit) submit.disabled = false;
+                if (submit?.querySelector(".login-submit-label") && original)
+                    submit.querySelector(".login-submit-label").textContent = original;
+            }
+        });
+    }
+
+    /* ---------- LOGOUT BUTTON ---------- */
+    const navLogout = document.getElementById("navLogout");
+    if (navLogout) {
+        // hide on the login page itself — nothing to log out of
+        if (isLoginPage()) navLogout.style.display = "none";
+        navLogout.addEventListener("click", () => {
+            clearToken();
+            location.replace("/login");
+        });
+    }
 })();

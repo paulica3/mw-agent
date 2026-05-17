@@ -28,6 +28,19 @@
                 }
             } catch(e) {}
         })();
+        // auth gate — synchronous redirect before render so no flash of protected content.
+        // login page itself is exempt; everything else requires xa-token in localStorage.
+        (function(){
+            try {
+                var path = location.pathname.toLowerCase();
+                var isLogin = path.indexOf('login') !== -1;
+                var hasToken = !!localStorage.getItem('xa-token');
+                if (!isLogin && !hasToken) {
+                    var from = encodeURIComponent(location.pathname + location.search);
+                    location.replace('/login?from=' + from);
+                }
+            } catch(e) {}
+        })();
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -81,6 +94,7 @@
             <span class="status-dot"></span>
             <span class="status-text" id="navClock">SYS.ONLINE</span>
         </div>
+        <button class="nav-logout" id="navLogout" type="button" title="Log out" aria-label="Log out">⏻</button>
     </div>
 </header>
 

@@ -1,0 +1,30 @@
+@page
+@model LoginModel
+@{
+    ViewData["Title"] = "LOGIN";
+}
+
+<section class="login">
+    <div class="login-card">
+        <div class="login-tag">// SECURE_ACCESS</div>
+        <h1 class="login-title glitch" data-text="XPERIMENT_AI">
+            <span>XPERIMENT</span><span class="login-title-accent">_AI</span>
+        </h1>
+        <p class="login-sub">restricted signal · operator credentials required</p>
+
+        <form class="login-form" id="loginForm" autocomplete="off">
+            <label class="login-field">
+                <span class="login-label">// PASSWORD</span>
+                <input type="password" name="password" id="loginPassword"
+                       placeholder="enter your access key" autofocus required/>
+            </label>
+            <button type="submit" class="login-submit" id="loginSubmit">
+                <span class="login-submit-label">AUTHENTICATE</span>
+                <span class="login-submit-arrow">»</span>
+            </button>
+            <div class="login-error" id="loginError" hidden></div>
+        </form>
+
+        <div class="login-foot">// access tokens expire after 30 days</div>
+    </div>
+</section>

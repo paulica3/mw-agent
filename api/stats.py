@@ -20,10 +20,14 @@ Storage shape under STATS_KEY:
 
 import json
 import os
+import sys
 import urllib.error
 import urllib.request
 from datetime import date
 from http.server import BaseHTTPRequestHandler
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from _auth import check_request
 
 
 KV_URL = (
@@ -118,12 +122,16 @@ class handler(BaseHTTPRequestHandler):
         self.wfile.write(payload)
 
     def do_GET(self) -> None:
+        if not check_request(self):
+            return
         try:
             self._send(200, _enrich(_load_stats()))
         except Exception as e:  # noqa: BLE001
             self._send(500, {"error": str(e)})
 
     def do_POST(self) -> None:
+        if not check_request(self):
+            return
         if not KV_URL or not KV_TOKEN:
             self._send(503, {"error": "kv not configured"})
             return

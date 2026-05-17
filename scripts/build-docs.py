@@ -36,6 +36,7 @@ PAGE_FILES = {
     "video":        PAGES / "Video.cshtml",
     "dashboard":    PAGES / "Dashboard.cshtml",
     "subscription": PAGES / "Subscription.cshtml",
+    "login":        PAGES / "Login.cshtml",
 }
 
 

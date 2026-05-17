@@ -24,10 +24,14 @@ BFL responses look like:
 import base64
 import json
 import os
+import sys
 import urllib.error
 import urllib.parse
 import urllib.request
 from http.server import BaseHTTPRequestHandler
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from _auth import check_request
 
 
 BFL_API_KEY  = os.environ.get("BFL_API_KEY", "")
@@ -90,6 +94,8 @@ class handler(BaseHTTPRequestHandler):
 
     # ---------- POST: kick off a generation ----------
     def do_POST(self) -> None:
+        if not check_request(self):
+            return
         if self._key_missing():
             return
         try:
@@ -147,6 +153,8 @@ class handler(BaseHTTPRequestHandler):
 
     # ---------- GET: poll task status ----------
     def do_GET(self) -> None:
+        if not check_request(self):
+            return
         if self._key_missing():
             return
         try:

@@ -1584,6 +1584,249 @@ body.cursor-hot .cursor-star svg {
 }
 
 /* =============================================================
+   LOGIN PAGE — restricted access gate
+   ============================================================= */
+.login {
+    min-height: calc(100vh - var(--nav-h, 4rem) - 8rem);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+}
+.login-card {
+    width: 100%;
+    max-width: 460px;
+    background: var(--bg-1);
+    border: 1px solid var(--line-2);
+    padding: 2.4rem 2rem;
+    position: relative;
+}
+.login-card::before {
+    /* subtle scanline texture overlay */
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+        to bottom,
+        transparent 0 2px,
+        rgba(255,255,255,0.015) 2px 3px
+    );
+    pointer-events: none;
+}
+.login-tag {
+    font-family: var(--mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.22em;
+    color: var(--ink-mute);
+    margin-bottom: 1rem;
+}
+.login-title {
+    font-family: var(--pix);
+    font-size: clamp(1.4rem, 5vw, 1.9rem);
+    letter-spacing: 0.06em;
+    line-height: 1.1;
+    margin-bottom: 0.7rem;
+    color: var(--ink);
+}
+.login-title-accent { color: var(--ink-dim); }
+.login-sub {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    color: var(--ink-dim);
+    margin-bottom: 1.8rem;
+    line-height: 1.5;
+}
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+.login-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+.login-label {
+    font-family: var(--mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.2em;
+    color: var(--ink-mute);
+}
+.login-field input[type="password"] {
+    font-family: var(--mono);
+    font-size: 0.9rem;
+    letter-spacing: 0.14em;
+    color: var(--ink);
+    background: rgba(0,0,0,0.4);
+    border: 1px solid var(--line);
+    padding: 0.85rem 1rem;
+    cursor: text;
+    transition: border-color 0.15s, background-color 0.15s;
+}
+.login-field input[type="password"]::placeholder {
+    color: var(--ink-mute);
+    letter-spacing: 0.08em;
+    font-size: 0.8rem;
+}
+.login-field input[type="password"]:focus {
+    outline: none;
+    border-color: var(--ink-dim);
+    background: rgba(0,0,0,0.65);
+}
+
+.login-submit {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    font-family: var(--pix);
+    font-size: 0.75rem;
+    letter-spacing: 0.18em;
+    color: var(--bg);
+    background: var(--ink);
+    border: 1px solid var(--ink);
+    padding: 0.95rem 1.2rem;
+    cursor: none;
+    transition: background-color 0.15s, color 0.15s, transform 0.1s;
+}
+.login-submit:hover  { background: var(--accent-hot); border-color: var(--accent-hot); transform: translateY(-1px); }
+.login-submit:active { transform: translateY(0); }
+.login-submit:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+.login-submit-arrow { font-size: 1.05rem; }
+
+.login-error {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
+    color: #ff5577;
+    border: 1px solid rgba(255,85,119,0.4);
+    background: rgba(255,85,119,0.05);
+    padding: 0.6rem 0.9rem;
+    margin-top: 0.4rem;
+}
+
+.login-foot {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.18em;
+    color: var(--ink-mute);
+    text-align: center;
+    margin-top: 1.6rem;
+    padding-top: 1.2rem;
+    border-top: 1px dashed var(--line);
+}
+
+/* nav logout button */
+.nav-logout {
+    font-family: var(--mono);
+    font-size: 1rem;
+    line-height: 1;
+    color: var(--ink-mute);
+    background: transparent;
+    border: 1px solid var(--line);
+    padding: 0.35rem 0.55rem;
+    margin-left: 0.6rem;
+    cursor: none;
+    transition: color 0.15s, border-color 0.15s, background-color 0.15s;
+}
+.nav-logout:hover {
+    color: #ff5577;
+    border-color: #ff5577;
+    background: rgba(255,85,119,0.08);
+}
+
+/* ----- bloom theme overrides ----- */
+[data-theme="bloom"] .login-card {
+    background: rgba(255,255,255,0.6);
+    border-radius: 22px;
+    border-color: var(--line);
+}
+[data-theme="bloom"] .login-card::before { display: none; }
+[data-theme="bloom"] .login-tag {
+    font-family: var(--sans);
+    text-transform: lowercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-mute);
+}
+[data-theme="bloom"] .login-title {
+    font-family: var(--script);
+    font-size: clamp(2.6rem, 8vw, 4rem);
+    text-transform: lowercase;
+    letter-spacing: normal;
+    line-height: 0.9;
+}
+[data-theme="bloom"] .login-title-accent { color: var(--accent); }
+[data-theme="bloom"] .login-sub {
+    font-family: var(--sans);
+    text-transform: lowercase;
+    letter-spacing: 0.02em;
+    color: var(--ink-dim);
+}
+[data-theme="bloom"] .login-label {
+    font-family: var(--sans);
+    text-transform: lowercase;
+    letter-spacing: 0.06em;
+}
+[data-theme="bloom"] .login-field input[type="password"] {
+    font-family: var(--sans);
+    letter-spacing: 0.04em;
+    background: rgba(255,255,255,0.55);
+    border-radius: 14px;
+    color: var(--ink);
+}
+[data-theme="bloom"] .login-field input[type="password"]::placeholder {
+    font-family: var(--sans);
+    color: var(--ink-mute);
+}
+[data-theme="bloom"] .login-field input[type="password"]:focus {
+    background: rgba(255,255,255,0.85);
+    border-color: var(--accent);
+}
+[data-theme="bloom"] .login-submit {
+    font-family: var(--sans);
+    text-transform: lowercase;
+    letter-spacing: 0.06em;
+    border-radius: 999px;
+}
+[data-theme="bloom"] .login-error {
+    font-family: var(--sans);
+    border-radius: 12px;
+    color: #c4456a;
+    border-color: rgba(196,69,106,0.4);
+    background: rgba(196,69,106,0.06);
+}
+[data-theme="bloom"] .login-foot {
+    font-family: var(--script);
+    font-size: 1.2rem;
+    letter-spacing: normal;
+    text-transform: none;
+}
+[data-theme="bloom"] .nav-logout {
+    border-radius: 50%;
+    color: var(--ink-mute);
+    border-color: var(--line);
+}
+[data-theme="bloom"] .nav-logout:hover {
+    color: #c4456a;
+    border-color: #c4456a;
+    background: rgba(196,69,106,0.08);
+}
+
+/* responsive */
+@media (max-width: 600px) {
+    .login-card  { padding: 1.8rem 1.4rem; }
+    .login-title { font-size: 1.3rem; }
+    .login-sub   { font-size: 0.7rem; }
+    .nav-logout  { margin-left: 0.3rem; padding: 0.3rem 0.45rem; }
+}
+
+/* =============================================================
    GENERATION MODAL — overlay for rendering progress + result
    ============================================================= */
 .gen-modal {

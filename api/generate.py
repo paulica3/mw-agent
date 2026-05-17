@@ -28,10 +28,14 @@ import hashlib
 import hmac
 import json
 import os
+import sys
 import time
 import urllib.error
 import urllib.request
 from http.server import BaseHTTPRequestHandler
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from _auth import check_request
 
 
 KLING_ACCESS_KEY = os.environ.get("KLING_ACCESS_KEY", "")
@@ -93,6 +97,8 @@ class handler(BaseHTTPRequestHandler):
         self.wfile.write(payload)
 
     def do_POST(self) -> None:
+        if not check_request(self):
+            return
         if not KLING_ACCESS_KEY or not KLING_SECRET_KEY:
             self._send(503, {"error": "KLING_ACCESS_KEY / KLING_SECRET_KEY not configured in vercel env"})
             return
