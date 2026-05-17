@@ -408,12 +408,27 @@
     };
 
     /* ---------- CHIP SELECTION + PROMPT READOUT ---------- */
-    const selections = {};
-    const readout    = document.getElementById("promptReadout");
-    const director   = document.querySelector(".director");
+    const selections    = {};
+    const readout       = document.getElementById("promptReadout");
+    const readoutWrap   = readout?.closest(".prompt-readout");
+    const readoutReset  = document.getElementById("readoutReset");
+    const director      = document.querySelector(".director");
+
+    // when the user types in the readout, we stop overwriting it from chip changes.
+    // they can hit the reset button to go back to auto-assembly.
+    let userEditedPrompt = false;
+
+    const syncReadoutChrome = () => {
+        if (!readout) return;
+        const isEmpty = readout.textContent.trim().length === 0;
+        readout.classList.toggle("is-empty", isEmpty);
+        if (readoutWrap)  readoutWrap.classList.toggle("is-edited", userEditedPrompt);
+        if (readoutReset) readoutReset.hidden = !userEditedPrompt;
+    };
 
     const renderReadout = () => {
         if (!readout) return;
+        if (userEditedPrompt) { syncReadoutChrome(); return; }  // don't clobber user edits
         const parts = [];
         for (const group of Object.keys(selections)) {
             const frag = getFragment(group, selections[group]);
@@ -421,8 +436,43 @@
         }
         const note = director?.value?.trim();
         if (note) parts.push(note);
-        readout.textContent = parts.length ? parts.join(", ") : "— awaiting input —";
+        readout.textContent = parts.join(", ");   // empty string → placeholder via :empty class
+        syncReadoutChrome();
     };
+
+    // mark as user-edited as soon as they type in the readout
+    if (readout) {
+        readout.addEventListener("input", () => {
+            const empty = readout.textContent.trim().length === 0;
+            // if they emptied the field, hand back to auto-assembly
+            userEditedPrompt = !empty;
+            syncReadoutChrome();
+        });
+        // strip formatting from pasted text (some browsers ignore plaintext-only)
+        readout.addEventListener("paste", (e) => {
+            e.preventDefault();
+            const text = (e.clipboardData || window.clipboardData)?.getData("text/plain") || "";
+            // execCommand is deprecated but still the most reliable for insert-at-cursor
+            // in a contenteditable. fallback inserts at end.
+            try { document.execCommand("insertText", false, text); }
+            catch (err) { readout.textContent = (readout.textContent || "") + text; }
+        });
+        // ctrl/cmd+enter from the readout fires the generate button — handy keyboard flow
+        readout.addEventListener("keydown", (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+                e.preventDefault();
+                document.getElementById("generateBtn")?.click();
+            }
+        });
+    }
+
+    if (readoutReset) {
+        readoutReset.addEventListener("click", () => {
+            userEditedPrompt = false;
+            renderReadout();
+            readout?.focus();
+        });
+    }
 
     /* event delegation on the gen-grid container — handles clicks on chips
        from any panel, dynamic or static. */
@@ -841,9 +891,9 @@
 
     /* ---------- BUILD THE GENERATION REQUEST ----------
        reads the current chip selections + director note + uploaded file. */
-    const buildPrompt = () => readout?.textContent && readout.textContent !== "— awaiting input —"
-        ? readout.textContent
-        : "";
+    // whatever's currently in the readout (user-edited or auto-assembled) is the
+    // final prompt — placeholder is rendered via CSS so it never leaks into textContent.
+    const buildPrompt = () => (readout?.textContent || "").trim();
 
     const readFileAsDataURL = (file) => new Promise((resolve, reject) => {
         const r = new FileReader();

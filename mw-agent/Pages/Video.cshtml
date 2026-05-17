@@ -56,8 +56,13 @@
 
     <div class="gen-foot">
         <div class="prompt-readout">
-            <span class="readout-label">// ASSEMBLED_SIGNAL</span>
-            <div class="readout-body" id="promptReadout">— awaiting input —</div>
+            <div class="readout-head">
+                <span class="readout-label">// ASSEMBLED_SIGNAL</span>
+                <button class="readout-reset" id="readoutReset" type="button" hidden>↺ reset to auto</button>
+            </div>
+            <div class="readout-body is-empty" id="promptReadout"
+                 contenteditable="plaintext-only" spellcheck="false"
+                 data-placeholder="— awaiting input · click to edit —"></div>
         </div>
         <button class="generate" id="generateBtn">
             <span class="gen-label">RENDER</span>

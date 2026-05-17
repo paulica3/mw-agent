@@ -749,12 +749,37 @@ body.cursor-hot .cursor-star svg {
     padding: 1rem 1.2rem;
     position: relative;
     overflow: hidden;
+    transition: border-color 0.2s, background-color 0.2s;
+}
+.prompt-readout:focus-within {
+    border-color: var(--ink-dim);
+    background: #000;
+}
+.readout-head {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    justify-content: space-between;
 }
 .readout-label {
     font-family: var(--mono);
     font-size: 0.7rem;
     color: var(--ink-mute);
     letter-spacing: 0.25em;
+}
+.readout-reset {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.16em;
+    color: var(--ink-mute);
+    padding: 0.25rem 0.55rem;
+    border: 1px solid var(--line);
+    transition: color 0.15s, border-color 0.15s, background-color 0.15s;
+}
+.readout-reset:hover {
+    color: var(--accent-hot);
+    border-color: var(--accent-hot);
+    background: rgba(255,255,255,0.05);
 }
 .readout-body {
     font-family: var(--crt);
@@ -764,12 +789,34 @@ body.cursor-hot .cursor-star svg {
     line-height: 1.5;
     min-height: 1.6em;
     word-break: break-word;
+    /* editable affordances */
+    cursor: text;
+    outline: none;
+    white-space: pre-wrap;
+}
+.readout-body:focus {
+    /* subtle highlight while focused */
+    color: var(--accent-hot);
 }
 .readout-body::after {
     content: "▌";
     color: var(--ink);
     margin-left: 4px;
     animation: blink 1s steps(2) infinite;
+}
+/* hide the blinking caret while user is typing (browser shows its own) */
+.readout-body:focus::after { display: none; }
+
+/* JS toggles .is-empty when textContent is blank; show placeholder text via :before */
+.readout-body.is-empty::before {
+    content: attr(data-placeholder);
+    color: var(--ink-mute);
+    pointer-events: none;
+}
+/* a tiny "edited" indicator on the label when user has modified the prompt */
+.prompt-readout.is-edited .readout-label::after {
+    content: " · custom";
+    color: var(--accent-hot);
 }
 
 .generate {
@@ -1469,6 +1516,27 @@ body.cursor-hot .cursor-star svg {
     font-size: 1.3rem;
 }
 [data-theme="bloom"] .readout-body::after { display: none; }
+[data-theme="bloom"] .readout-body:focus { color: var(--accent); }
+[data-theme="bloom"] .prompt-readout:focus-within {
+    background: rgba(255,255,255,0.6);
+    border-color: var(--accent);
+}
+[data-theme="bloom"] .readout-reset {
+    font-family: var(--sans);
+    text-transform: lowercase;
+    letter-spacing: 0.06em;
+    border-radius: 999px;
+    color: var(--ink-mute);
+}
+[data-theme="bloom"] .readout-reset:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+    background: rgba(193,154,107,0.08);
+}
+[data-theme="bloom"] .prompt-readout.is-edited .readout-label::after {
+    content: " · custom";
+    color: var(--accent);
+}
 
 [data-theme="bloom"] .generate {
     background: var(--accent);
