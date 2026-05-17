@@ -76,6 +76,8 @@ COMMON_REPLACEMENTS = [
     ('~/favicon.svg',     'favicon.svg'),
     ('~/css/site.css',    'css/site.css'),
     ('~/js/site.js',      'js/site.js'),
+    ('~/img/flag-rs.svg', 'img/flag-rs.svg'),
+    ('~/img/flag-md.svg', 'img/flag-md.svg'),
 ]
 
 
@@ -108,14 +110,24 @@ def extract_title(page_text: str) -> str:
 # ---------- build steps ----------
 
 def sync_assets() -> None:
-    """Copy css, js, and favicon from wwwroot into the output directory."""
+    """Copy css, js, favicon (and img/ if it exists) from wwwroot into the output."""
     OUT.mkdir(exist_ok=True)
     (OUT / "css").mkdir(exist_ok=True)
     (OUT / "js").mkdir(exist_ok=True)
     shutil.copy(WWWROOT / "css" / "site.css", OUT / "css" / "site.css")
     shutil.copy(WWWROOT / "js"  / "site.js",  OUT / "js"  / "site.js")
     shutil.copy(WWWROOT / "favicon.svg",      OUT / "favicon.svg")
-    print("synced css, js, favicon")
+
+    # mirror wwwroot/img/ → docs/img/ if it exists (used for flag SVGs, etc.)
+    img_src = WWWROOT / "img"
+    extras  = ""
+    if img_src.exists():
+        img_dst = OUT / "img"
+        if img_dst.exists():
+            shutil.rmtree(img_dst)
+        shutil.copytree(img_src, img_dst)
+        extras = ", img/"
+    print(f"synced css, js, favicon{extras}")
 
 
 def render_page(layout: str, slug: str, title: str, body_html: str) -> str:

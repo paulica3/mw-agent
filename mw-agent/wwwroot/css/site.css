@@ -1908,31 +1908,22 @@ body.cursor-hot .cursor-star svg {
     margin-bottom: 1.4rem;
 }
 .rsmd-flag {
-    width: 90px;
-    height: 60px;
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+    /* serbia is 3:2, moldova is 2:1 — let each keep its native ratio */
+    height: 76px;
+    width: auto;
+    display: block;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.55);
     transform: scale(0);
     animation: rsmdFlagIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    /* prevent the cursor-none style from leaking into a draggable image */
+    pointer-events: none;
+    -webkit-user-drag: none;
 }
 @keyframes rsmdFlagIn { to { transform: scale(1); } }
 
-/* Serbian tricolor — red, blue, white (top to bottom) */
-.rsmd-flag--rs {
-    background: linear-gradient(to bottom,
-        #c6363c 0 33.33%,
-        #0c4076 33.33% 66.66%,
-        #ffffff 66.66% 100%);
-    animation-delay: 0.05s;
-}
-/* Moldovan tricolor — blue, yellow, red (left to right) */
-.rsmd-flag--md {
-    background: linear-gradient(to right,
-        #0046ae 0 33.33%,
-        #ffd200 33.33% 66.66%,
-        #cc092f 66.66% 100%);
-    animation-delay: 0.25s;
-}
+.rsmd-flag--rs { animation-delay: 0.05s; }
+.rsmd-flag--md { animation-delay: 0.25s; }
 .rsmd-bond {
     font-family: var(--pix);
     font-size: 1.8rem;
@@ -1979,7 +1970,7 @@ body.cursor-hot .cursor-star svg {
 }
 
 @media (max-width: 600px) {
-    .rsmd-flag { width: 64px; height: 42px; }
+    .rsmd-flag { height: 56px; }
     .rsmd-text { flex-direction: column; gap: 0.3rem; }
     .rsmd-line { font-size: 1.4rem; }
 }
