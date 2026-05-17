@@ -309,9 +309,10 @@
     const API_URL          = "/api/chips";
     const CACHE_KEY        = "xa-chips-cache";
     const STATIC_GROUPS    = ["color", "duration"];
-    const PAGE             = document.body.classList.contains("page-dashboard") ? "dashboard"
-                           : document.body.classList.contains("page-image")     ? "image"
-                           : document.body.classList.contains("page-video")     ? "video"
+    const PAGE             = document.body.classList.contains("page-dashboard")    ? "dashboard"
+                           : document.body.classList.contains("page-image")        ? "image"
+                           : document.body.classList.contains("page-video")        ? "video"
+                           : document.body.classList.contains("page-subscription") ? "subscription"
                            : null;
 
     // fragments for the special hardcoded groups (color swatches, duration numerics, image size)
@@ -977,6 +978,13 @@
                     modalDL.removeAttribute("href");
                     modalDL.removeAttribute("download");
                     setPane("success");
+                    // fire-and-forget: record this successful render in stats.
+                    // backend dedups by taskId so repeats are harmless.
+                    fetch("/api/stats", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ type: page, taskId: taskInfo.id }),
+                    }).catch(() => { /* offline / kv down — fine, just skip */ });
                     return;
                 }
                 if (data.status === "failed") {
@@ -1064,6 +1072,48 @@
                 if (activeTimerId) { clearInterval(activeTimerId); activeTimerId = null; }
             }
         });
+    }
+
+    /* ---------- SUBSCRIPTION STATS ----------
+       on the Subscription page, fetch real usage counters from /api/stats
+       and replace the dash placeholders in the DOM.                       */
+    if (PAGE === "subscription") {
+        const statEls = {
+            videos:      document.getElementById("statVideos"),
+            images:      document.getElementById("statImages"),
+            thisMonth:   document.getElementById("statThisMonth"),
+            monthHint:   document.getElementById("statThisMonthHint"),
+            memberSince: document.getElementById("statMemberSince"),
+        };
+
+        const MONTHS = ["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"];
+
+        // "2026-05-14" → "may 2026"
+        const fmtMemberSince = (iso) => {
+            if (!iso || typeof iso !== "string") return "—";
+            const m = iso.match(/^(\d{4})-(\d{2})/);
+            if (!m) return "—";
+            const monthIdx = parseInt(m[2], 10) - 1;
+            return `${MONTHS[monthIdx] || "?"} ${m[1]}`;
+        };
+
+        // hint copy like "renders since may 1"
+        const fmtMonthHint = () => {
+            const now = new Date();
+            return `renders since ${MONTHS[now.getMonth()]} 1`;
+        };
+
+        fetch("/api/stats")
+            .then((r) => r.ok ? r.json() : null)
+            .then((data) => {
+                if (!data) return;
+                if (statEls.videos)      statEls.videos.textContent      = String(data.videos ?? 0);
+                if (statEls.images)      statEls.images.textContent      = String(data.images ?? 0);
+                if (statEls.thisMonth)   statEls.thisMonth.textContent   = String(data.currentMonth ?? 0);
+                if (statEls.monthHint)   statEls.monthHint.textContent   = fmtMonthHint();
+                if (statEls.memberSince) statEls.memberSince.textContent = fmtMemberSince(data.firstUse);
+            })
+            .catch(() => { /* offline / kv down — keep the dashes */ });
     }
 
     /* ---------- SUBSCRIPTION TOAST ----------
