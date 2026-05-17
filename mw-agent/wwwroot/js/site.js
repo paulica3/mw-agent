@@ -10,11 +10,44 @@
        header via a global fetch wrapper. a 401 from any endpoint clears the
        token and bounces back to /login. */
     const AUTH_TOKEN_KEY = "xa-token";
-    const getToken = () => { try { return localStorage.getItem(AUTH_TOKEN_KEY); } catch (e) { return null; } };
-    const setToken = (t) => { try { localStorage.setItem(AUTH_TOKEN_KEY, t); } catch (e) {} };
-    const clearToken = () => { try { localStorage.removeItem(AUTH_TOKEN_KEY); } catch (e) {} };
+    const AUTH_ROLE_KEY  = "xa-user-role";
+
+    const getToken   = () => { try { return localStorage.getItem(AUTH_TOKEN_KEY); } catch (e) { return null; } };
+    const setToken   = (t) => { try { localStorage.setItem(AUTH_TOKEN_KEY, t); } catch (e) {} };
+    const clearToken = () => {
+        try {
+            localStorage.removeItem(AUTH_TOKEN_KEY);
+            localStorage.removeItem(AUTH_ROLE_KEY);
+        } catch (e) {}
+    };
+    const setRole = (r) => { try { if (r) localStorage.setItem(AUTH_ROLE_KEY, r); } catch (e) {} };
+
+    // decode JWT-ish token payload (no signature verify — that's server-side).
+    // returns null if malformed.
+    const decodeTokenPayload = (token) => {
+        if (!token || !token.includes(".")) return null;
+        try {
+            const head = token.split(".")[0];
+            const pad  = "=".repeat((4 - head.length % 4) % 4);
+            const json = atob(head.replace(/-/g, "+").replace(/_/g, "/") + pad);
+            return JSON.parse(json);
+        } catch (e) { return null; }
+    };
+
+    const getRole = () => {
+        try {
+            const stored = localStorage.getItem(AUTH_ROLE_KEY);
+            if (stored) return stored;
+            return decodeTokenPayload(getToken())?.user || null;
+        } catch (e) { return null; }
+    };
+    const isDev = () => getRole() === "dev";
 
     const isLoginPage = () => location.pathname.toLowerCase().indexOf("login") !== -1;
+
+    // circular buffer of recent API calls — consumed by the dev HUD
+    const API_CALL_LOG = [];
+    const MAX_API_LOG  = 10;
 
     // wrap fetch so every /api/* call automatically carries the token
     const _origFetch = window.fetch.bind(window);
@@ -26,7 +59,17 @@
         const opts = Object.assign({}, init || {});
         opts.headers = new Headers(opts.headers || {});
         if (token) opts.headers.set("Authorization", `Bearer ${token}`);
+        const method = (opts.method || "GET").toUpperCase();
+        const startedAt = performance.now();
         return _origFetch(input, opts).then((resp) => {
+            API_CALL_LOG.push({
+                method,
+                url: url.replace(/\?.*$/, ""),
+                status: resp.status,
+                timing: Math.round(performance.now() - startedAt),
+                at: new Date(),
+            });
+            while (API_CALL_LOG.length > MAX_API_LOG) API_CALL_LOG.shift();
             // login endpoint can legitimately 401 — only auto-bounce for other endpoints
             if (resp.status === 401 && !url.includes("/api/login") && !isLoginPage()) {
                 clearToken();
@@ -1229,6 +1272,7 @@
                     return;
                 }
                 setToken(data.token);
+                setRole(data.user);
                 const from = new URLSearchParams(location.search).get("from") || "/";
                 location.replace(from);
             } catch (err) {
@@ -1249,5 +1293,111 @@
             clearToken();
             location.replace("/login");
         });
+    }
+
+    /* ---------- DEV-ONLY FEATURES ----------
+       guarded behind the "dev" role on the auth token. operator login sees
+       nothing of this. badge + console HUD activated with backtick.       */
+    if (isDev() && !isLoginPage()) {
+        const badge = document.getElementById("navDevBadge");
+        if (badge) badge.hidden = false;
+
+        const hud = document.getElementById("devHud");
+        if (hud) {
+            const fmtExp = (exp) => {
+                const now = Math.floor(Date.now() / 1000);
+                const diff = (exp || 0) - now;
+                if (diff <= 0) return "expired";
+                if (diff < 3600)  return `${Math.round(diff / 60)}m`;
+                if (diff < 86400) return `${Math.round(diff / 3600)}h`;
+                return `${Math.round(diff / 86400)}d`;
+            };
+
+            const inInput = (el) => {
+                if (!el) return false;
+                const tag = (el.tagName || "").toLowerCase();
+                return tag === "input" || tag === "textarea" || el.isContentEditable;
+            };
+
+            const escapeForHTML = (s) => String(s)
+                .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+            const refreshHUD = async () => {
+                const payload = decodeTokenPayload(getToken());
+
+                const setText = (id, txt) => {
+                    const el = document.getElementById(id);
+                    if (el) el.textContent = txt;
+                };
+                setText("hudUser", payload?.user || "—");
+                setText("hudExp",  payload?.exp  ? fmtExp(payload.exp) : "—");
+                setText("hudPage", PAGE || "(none)");
+
+                const kvEl = document.getElementById("hudKv");
+                if (kvEl) {
+                    kvEl.textContent = "checking…";
+                    try {
+                        const t0 = performance.now();
+                        const r = await fetch("/api/stats");
+                        const ms = Math.round(performance.now() - t0);
+                        kvEl.textContent = r.ok ? `✓ ok (${ms}ms)` : `✗ ${r.status}`;
+                    } catch (e) {
+                        kvEl.textContent = "✗ unreachable";
+                    }
+                }
+
+                const logEl = document.getElementById("hudLog");
+                if (logEl) {
+                    if (!API_CALL_LOG.length) {
+                        logEl.textContent = "— no requests yet —";
+                    } else {
+                        logEl.innerHTML = API_CALL_LOG.slice().reverse().map((c) => {
+                            const statusCls = c.status >= 200 && c.status < 300 ? "ok"
+                                            : c.status >= 400                   ? "err"
+                                            : "warn";
+                            return `<div class="dev-hud-log-row">
+                                <span class="dev-hud-method">${escapeForHTML(c.method)}</span>
+                                <span class="dev-hud-url">${escapeForHTML(c.url)}</span>
+                                <span class="dev-hud-status dev-hud-status--${statusCls}">${c.status}</span>
+                                <span class="dev-hud-timing">${c.timing}ms</span>
+                            </div>`;
+                        }).join("");
+                    }
+                }
+
+                const selEl = document.getElementById("hudSelections");
+                if (selEl) {
+                    selEl.textContent = JSON.stringify(selections || {}, null, 2);
+                }
+            };
+
+            const toggleHUD = () => {
+                if (hud.hidden) {
+                    hud.hidden = false;
+                    refreshHUD();
+                } else {
+                    hud.hidden = true;
+                }
+            };
+
+            // backtick toggles, esc closes — but only when not typing in a field
+            document.addEventListener("keydown", (e) => {
+                if (e.key === "`" && !inInput(e.target)) {
+                    e.preventDefault();
+                    toggleHUD();
+                    return;
+                }
+                if (e.key === "Escape" && !hud.hidden) {
+                    hud.hidden = true;
+                }
+            });
+
+            document.getElementById("devHudClose")?.addEventListener("click", () => { hud.hidden = true; });
+            document.getElementById("hudRefresh")?.addEventListener("click", refreshHUD);
+            document.getElementById("hudClearLog")?.addEventListener("click", () => {
+                API_CALL_LOG.length = 0;
+                refreshHUD();
+            });
+        }
     }
 })();

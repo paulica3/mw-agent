@@ -94,6 +94,7 @@
             <span class="status-dot"></span>
             <span class="status-text" id="navClock">SYS.ONLINE</span>
         </div>
+        <span class="nav-dev-badge" id="navDevBadge" hidden>[ DEV ]</span>
         <button class="nav-logout" id="navLogout" type="button" title="Log out" aria-label="Log out">⏻</button>
     </div>
 </header>
@@ -155,6 +156,38 @@
         <span class="footer-text footer-text--bloom">@DateTime.UtcNow.Year · stay soft</span>
     </div>
 </footer>
+
+<!-- dev console overlay (only ever shown when logged in as dev; press backtick to toggle) -->
+<div class="dev-hud" id="devHud" hidden>
+    <div class="dev-hud-head">
+        <span class="dev-hud-title">// DEV_CONSOLE</span>
+        <span class="dev-hud-hint">[ ` ] toggle · [ esc ] close</span>
+        <button class="dev-hud-close" id="devHudClose" type="button" aria-label="Close">×</button>
+    </div>
+    <div class="dev-hud-body">
+        <div class="dev-hud-section">
+            <div class="dev-hud-label">// SESSION</div>
+            <div class="dev-hud-rows">
+                <div class="dev-hud-row"><span>user</span><span id="hudUser">—</span></div>
+                <div class="dev-hud-row"><span>token exp</span><span id="hudExp">—</span></div>
+                <div class="dev-hud-row"><span>kv health</span><span id="hudKv">—</span></div>
+                <div class="dev-hud-row"><span>page</span><span id="hudPage">—</span></div>
+            </div>
+        </div>
+        <div class="dev-hud-section">
+            <div class="dev-hud-label">// LAST_API_CALLS</div>
+            <div class="dev-hud-log" id="hudLog">— no requests yet —</div>
+        </div>
+        <div class="dev-hud-section">
+            <div class="dev-hud-label">// SELECTIONS</div>
+            <pre class="dev-hud-json" id="hudSelections">{}</pre>
+        </div>
+        <div class="dev-hud-actions">
+            <button class="dev-hud-btn" id="hudRefresh" type="button">refresh</button>
+            <button class="dev-hud-btn" id="hudClearLog" type="button">clear log</button>
+        </div>
+    </div>
+</div>
 
 <script src="~/js/site.js" asp-append-version="true"></script>
 @await RenderSectionAsync("Scripts", required: false)

@@ -1584,6 +1584,203 @@ body.cursor-hot .cursor-star svg {
 }
 
 /* =============================================================
+   DEV-ONLY UI — badge + console HUD
+   ============================================================= */
+.nav-dev-badge {
+    font-family: var(--pix);
+    font-size: 0.5rem;
+    letter-spacing: 0.18em;
+    color: #ff5577;
+    background: rgba(255,85,119,0.08);
+    border: 1px solid rgba(255,85,119,0.45);
+    padding: 0.3rem 0.5rem;
+    margin-left: 0.6rem;
+    animation: devBadgePulse 2.4s ease-in-out infinite;
+}
+@keyframes devBadgePulse {
+    0%, 100% { opacity: 1;   box-shadow: 0 0 0 0 rgba(255,85,119,0.4); }
+    50%      { opacity: 0.7; box-shadow: 0 0 10px 1px rgba(255,85,119,0.5); }
+}
+[data-theme="bloom"] .nav-dev-badge {
+    font-family: var(--sans);
+    text-transform: lowercase;
+    letter-spacing: 0.06em;
+    border-radius: 999px;
+    color: #c4456a;
+    background: rgba(196,69,106,0.1);
+    border-color: rgba(196,69,106,0.45);
+}
+
+/* ---------- HUD ---------- */
+.dev-hud {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 9700;
+    width: 380px;
+    max-width: calc(100vw - 2rem);
+    max-height: calc(100vh - 2rem);
+    background: rgba(5, 5, 5, 0.94);
+    border: 1px solid #ff5577;
+    color: var(--ink);
+    font-family: var(--mono);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    display: flex;
+    flex-direction: column;
+    box-shadow:
+        0 0 0 1px rgba(255,85,119,0.15),
+        0 20px 60px rgba(0,0,0,0.6),
+        0 0 40px rgba(255,85,119,0.12);
+    animation: hudSlide 0.25s ease-out;
+}
+@keyframes hudSlide {
+    from { opacity: 0; transform: translateX(20px); }
+    to   { opacity: 1; transform: translateX(0);    }
+}
+.dev-hud[hidden] { display: none; }
+
+.dev-hud-head {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.7rem 0.9rem;
+    border-bottom: 1px solid rgba(255,85,119,0.3);
+    background: rgba(255,85,119,0.05);
+}
+.dev-hud-title {
+    font-family: var(--pix);
+    font-size: 0.65rem;
+    letter-spacing: 0.18em;
+    color: #ff5577;
+}
+.dev-hud-hint {
+    margin-left: auto;
+    font-size: 0.58rem;
+    letter-spacing: 0.14em;
+    color: var(--ink-mute);
+}
+.dev-hud-close {
+    font-family: var(--mono);
+    font-size: 1.1rem;
+    line-height: 1;
+    width: 22px;
+    height: 22px;
+    color: var(--ink-mute);
+    border: 1px solid var(--line);
+    background: transparent;
+    transition: color 0.15s, border-color 0.15s;
+}
+.dev-hud-close:hover {
+    color: #ff5577;
+    border-color: #ff5577;
+}
+
+.dev-hud-body {
+    padding: 0.8rem 0.9rem 0.9rem;
+    overflow: auto;
+    flex: 1;
+}
+.dev-hud-section {
+    margin-bottom: 1rem;
+}
+.dev-hud-section:last-child { margin-bottom: 0; }
+
+.dev-hud-label {
+    font-size: 0.58rem;
+    letter-spacing: 0.2em;
+    color: var(--ink-mute);
+    margin-bottom: 0.4rem;
+}
+
+.dev-hud-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+.dev-hud-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.6rem;
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    padding: 0.25rem 0.45rem;
+    background: rgba(255,255,255,0.02);
+}
+.dev-hud-row span:first-child  { color: var(--ink-mute); }
+.dev-hud-row span:last-child   { color: var(--ink); }
+
+.dev-hud-log {
+    font-size: 0.66rem;
+    letter-spacing: 0.02em;
+    color: var(--ink-dim);
+    background: rgba(255,255,255,0.02);
+    padding: 0.4rem 0.45rem;
+    max-height: 14em;
+    overflow: auto;
+}
+.dev-hud-log-row {
+    display: grid;
+    grid-template-columns: 36px 1fr auto auto;
+    gap: 0.4rem;
+    align-items: center;
+    padding: 0.18rem 0;
+    border-bottom: 1px dotted rgba(255,255,255,0.05);
+}
+.dev-hud-log-row:last-child   { border-bottom: 0; }
+.dev-hud-method               { color: var(--ink-dim); }
+.dev-hud-url                  { color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dev-hud-status               { font-weight: 700; }
+.dev-hud-status--ok           { color: #6ef0a8; }
+.dev-hud-status--warn         { color: #f0c86e; }
+.dev-hud-status--err          { color: #ff5577; }
+.dev-hud-timing               { color: var(--ink-mute); }
+
+.dev-hud-json {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--ink);
+    background: rgba(255,255,255,0.02);
+    padding: 0.55rem 0.7rem;
+    max-height: 12em;
+    overflow: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+    margin: 0;
+    line-height: 1.5;
+}
+
+.dev-hud-actions {
+    display: flex;
+    gap: 0.4rem;
+    margin-top: 0.6rem;
+    padding-top: 0.7rem;
+    border-top: 1px dashed rgba(255,255,255,0.08);
+}
+.dev-hud-btn {
+    font-family: var(--mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.16em;
+    color: var(--ink-mute);
+    padding: 0.4rem 0.7rem;
+    border: 1px solid var(--line);
+    background: transparent;
+    transition: color 0.15s, border-color 0.15s, background-color 0.15s;
+}
+.dev-hud-btn:hover {
+    color: #ff5577;
+    border-color: #ff5577;
+    background: rgba(255,85,119,0.05);
+}
+
+/* HUD stays consistent red-glitch styling in bloom theme too — it's a dev
+   tool, not part of the user-facing aesthetic. */
+
+@media (max-width: 600px) {
+    .dev-hud { top: 0.5rem; right: 0.5rem; left: 0.5rem; width: auto; }
+}
+
+/* =============================================================
    LOGIN PAGE — restricted access gate
    ============================================================= */
 .login {
