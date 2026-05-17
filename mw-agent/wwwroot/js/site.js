@@ -112,8 +112,27 @@
 
     if (themeBtn) {
         themeBtn.addEventListener("click", () => {
-            const next = root.getAttribute("data-theme") === "bloom" ? "chaos" : "bloom";
-            applyTheme(next, true);
+            const cur = root.getAttribute("data-theme");
+            // void is dev-only and exits cleanly when the chaos/bloom slider is clicked
+            if (cur === "void") { applyTheme("chaos", true); return; }
+            applyTheme(cur === "bloom" ? "chaos" : "bloom", true);
+        });
+    }
+
+    // separate void button (dev only — JS unhides it if isDev())
+    const voidBtn = document.getElementById("themeVoid");
+    if (voidBtn) {
+        voidBtn.addEventListener("click", () => {
+            const cur = root.getAttribute("data-theme");
+            if (cur === "void") {
+                // return to last non-void theme, default chaos
+                let prev = "chaos";
+                try { prev = localStorage.getItem("xa-theme-prev") || "chaos"; } catch (e) {}
+                applyTheme(prev, true);
+            } else {
+                try { localStorage.setItem("xa-theme-prev", cur); } catch (e) {}
+                applyTheme("void", true);
+            }
         });
     }
 
@@ -1295,12 +1314,30 @@
         });
     }
 
+    /* ---------- ROLE-AWARE GUARDS ----------
+       remove anything operator users shouldn't see, ensure their theme can't
+       be stuck on a dev-only value. */
+    if (!isDev()) {
+        // if a dev-themed value somehow leaked into localStorage (or they
+        // logged out from dev and back in as operator), force chaos.
+        if (root.getAttribute("data-theme") === "void") {
+            applyTheme("chaos", false);
+        }
+    }
+
     /* ---------- DEV-ONLY FEATURES ----------
        guarded behind the "dev" role on the auth token. operator login sees
        nothing of this. badge + console HUD activated with backtick.       */
     if (isDev() && !isLoginPage()) {
         const badge = document.getElementById("navDevBadge");
         if (badge) badge.hidden = false;
+
+        // unhide the void theme toggle
+        if (voidBtn) voidBtn.hidden = false;
+
+        // unhide the [ LAB ] nav link
+        const navLab = document.getElementById("navLab");
+        if (navLab) navLab.removeAttribute("hidden");
 
         const hud = document.getElementById("devHud");
         if (hud) {
@@ -1399,5 +1436,165 @@
                 refreshHUD();
             });
         }
+    }
+
+    /* ---------- LAB PAGE ----------
+       dev-only page at /lab. operator users get an access-denied panel.   */
+    if (document.body.classList.contains("page-lab")) {
+        const gate    = document.getElementById("labAccessGate");
+        const content = document.getElementById("labContent");
+
+        if (!isDev()) {
+            if (gate) {
+                gate.innerHTML = `
+                    <div class="lab-denied gen-panel">
+                        <div class="lab-denied-title">// ACCESS_DENIED</div>
+                        <div class="lab-denied-msg">this area is restricted to dev sessions.</div>
+                    </div>`;
+            }
+        } else {
+            if (content) content.hidden = false;
+
+            // ---- session info ----
+            const payload = decodeTokenPayload(getToken());
+            const setText = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+            setText("labSesUser", payload?.user || "—");
+            setText("labSesRole", getRole() || "—");
+            if (payload?.exp) {
+                const diffSec = payload.exp - Math.floor(Date.now() / 1000);
+                const d = Math.floor(diffSec / 86400);
+                const h = Math.floor((diffSec % 86400) / 3600);
+                setText("labSesExp", diffSec > 0 ? `${d}d ${h}h` : "expired");
+            }
+            const tok = getToken();
+            setText("labSesToken", tok ? tok.slice(0, 24) + "…" : "—");
+
+            // ---- KV state viewers ----
+            const renderJsonInto = (id, data) => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = JSON.stringify(data, null, 2);
+            };
+            const loadChips = () => {
+                renderJsonInto("labChipsJson", "loading…");
+                fetch("/api/chips")
+                    .then((r) => r.json()).then((d) => renderJsonInto("labChipsJson", d))
+                    .catch((e) => renderJsonInto("labChipsJson", { error: e.message }));
+            };
+            const loadStats = () => {
+                renderJsonInto("labStatsJson", "loading…");
+                fetch("/api/stats")
+                    .then((r) => r.json()).then((d) => renderJsonInto("labStatsJson", d))
+                    .catch((e) => renderJsonInto("labStatsJson", { error: e.message }));
+            };
+            loadChips();
+            loadStats();
+            document.getElementById("labReloadChips")?.addEventListener("click", loadChips);
+            document.getElementById("labReloadStats")?.addEventListener("click", loadStats);
+
+            // ---- API health pings ----
+            const pingRow = async (row) => {
+                const url = row.dataset.endpoint;
+                const method = row.dataset.method || "GET";
+                const statusEl = row.querySelector(".lab-h-status");
+                if (!statusEl || !url) return;
+                statusEl.textContent = "pinging…";
+                statusEl.className = "lab-h-status";
+                const t0 = performance.now();
+                try {
+                    // HEAD is rejected by some endpoints (we only allow GET/POST/DELETE)
+                    // so we use GET as a fallback for everything — the body is small
+                    const r = await fetch(url, { method: "GET" });
+                    const ms = Math.round(performance.now() - t0);
+                    const cls = r.status < 300 ? "ok" : r.status < 500 ? "warn" : "err";
+                    statusEl.textContent = `${r.status} · ${ms}ms`;
+                    statusEl.className = `lab-h-status lab-h-status--${cls}`;
+                } catch (e) {
+                    statusEl.textContent = "unreachable";
+                    statusEl.className = "lab-h-status lab-h-status--err";
+                }
+            };
+            document.querySelectorAll(".lab-health-row").forEach((row) => {
+                row.addEventListener("click", () => pingRow(row));
+            });
+            document.getElementById("labPingAll")?.addEventListener("click", () => {
+                document.querySelectorAll(".lab-health-row").forEach(pingRow);
+            });
+
+            // ---- actions ----
+            const showActionResult = (msg, kind = "ok") => {
+                const el = document.getElementById("labActionResult");
+                if (!el) return;
+                el.textContent = msg;
+                el.className = `lab-action-result lab-action-result--${kind}`;
+                el.hidden = false;
+                setTimeout(() => { el.hidden = true; }, 4000);
+            };
+            document.getElementById("labResetChips")?.addEventListener("click", async () => {
+                if (!confirm("Reset all chip categories to defaults? Your custom chips will be lost.")) return;
+                try {
+                    const r = await fetch("/api/chips", { method: "DELETE" });
+                    if (r.ok) { showActionResult("// chips reset", "ok"); loadChips(); }
+                    else      { showActionResult(`// failed: ${r.status}`, "err"); }
+                } catch (e) { showActionResult(`// error: ${e.message}`, "err"); }
+            });
+            document.getElementById("labClearLocal")?.addEventListener("click", () => {
+                if (!confirm("Clear localStorage? You'll be logged out and lose all client-side state.")) return;
+                try { localStorage.clear(); } catch (e) {}
+                showActionResult("// localStorage cleared · reloading", "ok");
+                setTimeout(() => location.replace("/login"), 800);
+            });
+            document.getElementById("labForceLogout")?.addEventListener("click", () => {
+                clearToken();
+                location.replace("/login");
+            });
+        }
+    }
+
+    /* ---------- EASTER EGG: RS ⨯ MD ----------
+       type "rsmd" anywhere on the site (not in input fields) → celebratory
+       overlay with both flags. available to all logged-in users.          */
+    const rsmdEgg = document.getElementById("rsmdEgg");
+    if (rsmdEgg) {
+        const inputField = (el) => {
+            if (!el) return false;
+            const tag = (el.tagName || "").toLowerCase();
+            return tag === "input" || tag === "textarea" || el.isContentEditable;
+        };
+
+        const TRIGGER = "rsmd";
+        let typedBuffer = "";
+        let dismissTimer = null;
+
+        const fireEgg = () => {
+            rsmdEgg.hidden = false;
+            // restart animation if already visible
+            rsmdEgg.classList.remove("is-active");
+            void rsmdEgg.offsetWidth;
+            rsmdEgg.classList.add("is-active");
+            // bonus sparkle burst near center if the sparkle system is up
+            window.dispatchEvent(new CustomEvent("xa-burst", {
+                detail: { x: window.innerWidth / 2, y: window.innerHeight / 2, count: 36 }
+            }));
+            if (dismissTimer) clearTimeout(dismissTimer);
+            dismissTimer = setTimeout(() => {
+                rsmdEgg.classList.remove("is-active");
+                setTimeout(() => { rsmdEgg.hidden = true; }, 600);
+            }, 4200);
+        };
+
+        document.addEventListener("keydown", (e) => {
+            if (inputField(e.target)) return;
+            if (e.key.length !== 1) return;
+            typedBuffer = (typedBuffer + e.key.toLowerCase()).slice(-TRIGGER.length);
+            if (typedBuffer === TRIGGER) {
+                typedBuffer = "";
+                fireEgg();
+            }
+        });
+
+        rsmdEgg.addEventListener("click", () => {
+            rsmdEgg.classList.remove("is-active");
+            setTimeout(() => { rsmdEgg.hidden = true; }, 300);
+        });
     }
 })();

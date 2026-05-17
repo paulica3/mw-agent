@@ -1,0 +1,85 @@
+@page
+@model LabModel
+@{
+    ViewData["Title"] = "LAB";
+}
+
+<section class="gen lab">
+    <div class="gen-head">
+        <div class="gen-crumbs">/ <a asp-page="/Index">HOME</a> / <span class="hl">LAB</span></div>
+        <h1 class="gen-title glitch" data-text="THE_LAB">THE_LAB</h1>
+        <p class="gen-lede">experimental playground · dev-only · break things here</p>
+    </div>
+
+    <!-- if a non-dev somehow loads this page, JS replaces this with an access-denied panel -->
+    <div id="labAccessGate"></div>
+
+    <div class="lab-grid" id="labContent" hidden>
+
+        <!-- API HEALTH -->
+        <div class="lab-panel gen-panel">
+            <div class="panel-bar">
+                <span class="panel-tag">⚡</span>
+                <span class="panel-name">// API_HEALTH</span>
+                <button class="lab-btn lab-btn--small" id="labPingAll" type="button">ping all</button>
+            </div>
+            <div class="lab-health" id="labHealth">
+                <div class="lab-health-row" data-endpoint="/api/stats">      <span class="lab-h-name">/api/stats</span>      <span class="lab-h-status">idle</span></div>
+                <div class="lab-health-row" data-endpoint="/api/chips">      <span class="lab-h-name">/api/chips</span>      <span class="lab-h-status">idle</span></div>
+                <div class="lab-health-row" data-endpoint="/api/generate"    data-method="HEAD"><span class="lab-h-name">/api/generate</span>   <span class="lab-h-status">idle</span></div>
+                <div class="lab-health-row" data-endpoint="/api/image"       data-method="HEAD"><span class="lab-h-name">/api/image</span>      <span class="lab-h-status">idle</span></div>
+                <div class="lab-health-row" data-endpoint="/api/download"    data-method="HEAD"><span class="lab-h-name">/api/download</span>   <span class="lab-h-status">idle</span></div>
+            </div>
+        </div>
+
+        <!-- SESSION -->
+        <div class="lab-panel gen-panel">
+            <div class="panel-bar">
+                <span class="panel-tag">★</span>
+                <span class="panel-name">// SESSION</span>
+            </div>
+            <div class="lab-rows" id="labSession">
+                <div class="lab-row"><span>user</span><span id="labSesUser">—</span></div>
+                <div class="lab-row"><span>role</span><span id="labSesRole">—</span></div>
+                <div class="lab-row"><span>expires in</span><span id="labSesExp">—</span></div>
+                <div class="lab-row"><span>token (first 24)</span><code id="labSesToken">—</code></div>
+            </div>
+        </div>
+
+        <!-- KV STATE: CHIPS -->
+        <div class="lab-panel gen-panel lab-panel--wide">
+            <div class="panel-bar">
+                <span class="panel-tag">▦</span>
+                <span class="panel-name">// KV_STATE / xa-chips</span>
+                <button class="lab-btn lab-btn--small" id="labReloadChips" type="button">reload</button>
+            </div>
+            <pre class="lab-json" id="labChipsJson">loading…</pre>
+        </div>
+
+        <!-- KV STATE: STATS -->
+        <div class="lab-panel gen-panel lab-panel--wide">
+            <div class="panel-bar">
+                <span class="panel-tag">▦</span>
+                <span class="panel-name">// KV_STATE / xa-stats</span>
+                <button class="lab-btn lab-btn--small" id="labReloadStats" type="button">reload</button>
+            </div>
+            <pre class="lab-json" id="labStatsJson">loading…</pre>
+        </div>
+
+        <!-- ACTIONS -->
+        <div class="lab-panel gen-panel lab-panel--wide">
+            <div class="panel-bar">
+                <span class="panel-tag">✶</span>
+                <span class="panel-name">// ACTIONS</span>
+                <span class="panel-hint">destructive ops require confirmation</span>
+            </div>
+            <div class="lab-actions">
+                <button class="lab-btn" id="labResetChips"  type="button">reset chips to defaults</button>
+                <button class="lab-btn lab-btn--danger" id="labClearLocal"  type="button">clear localStorage</button>
+                <button class="lab-btn lab-btn--danger" id="labForceLogout" type="button">force logout</button>
+            </div>
+            <div class="lab-action-result" id="labActionResult" hidden></div>
+        </div>
+
+    </div>
+</section>

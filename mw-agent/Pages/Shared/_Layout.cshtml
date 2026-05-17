@@ -22,7 +22,7 @@
             try {
                 var stored = localStorage.getItem('xa-theme');
                 var current = document.documentElement.getAttribute('data-theme');
-                if (stored && stored !== current && (stored === 'bloom' || stored === 'chaos')) {
+                if (stored && stored !== current && (stored === 'bloom' || stored === 'chaos' || stored === 'void')) {
                     document.documentElement.setAttribute('data-theme', stored);
                     document.cookie = 'xa-theme=' + stored + '; path=/; max-age=31536000; samesite=lax';
                 }
@@ -78,6 +78,7 @@
         <a asp-page="/Video" class="nav-link">[ VIDEO ]</a>
         <a asp-page="/Dashboard" class="nav-link">[ DASH ]</a>
         <a asp-page="/Subscription" class="nav-link">[ PLAN ]</a>
+        <a asp-page="/Lab" class="nav-link nav-link--dev" id="navLab" hidden>[ LAB ]</a>
     </nav>
     <div class="nav-right">
         <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle theme" title="Switch mood">
@@ -90,6 +91,7 @@
             </span>
             <span class="toggle-label toggle-label--right">bloom</span>
         </button>
+        <button class="theme-void" id="themeVoid" type="button" title="Void mode" aria-label="Void theme" hidden>⊘</button>
         <div class="nav-status">
             <span class="status-dot"></span>
             <span class="status-text" id="navClock">SYS.ONLINE</span>
@@ -156,6 +158,22 @@
         <span class="footer-text footer-text--bloom">@DateTime.UtcNow.Year · stay soft</span>
     </div>
 </footer>
+
+<!-- easter egg: serbia ⨯ moldova partnership · type "rsmd" anywhere -->
+<div class="rsmd-egg" id="rsmdEgg" hidden>
+    <div class="rsmd-egg-card">
+        <div class="rsmd-flags">
+            <div class="rsmd-flag rsmd-flag--rs" title="Serbia"></div>
+            <div class="rsmd-bond">⨯</div>
+            <div class="rsmd-flag rsmd-flag--md" title="Moldova"></div>
+        </div>
+        <div class="rsmd-text">
+            <div class="rsmd-line rsmd-line--rs">за нас</div>
+            <div class="rsmd-line rsmd-line--md">pentru noi</div>
+        </div>
+        <div class="rsmd-tag">// rs ⨯ md · partnership unlocked</div>
+    </div>
+</div>
 
 <!-- dev console overlay (only ever shown when logged in as dev; press backtick to toggle) -->
 <div class="dev-hud" id="devHud" hidden>
