@@ -50,10 +50,23 @@ PRE_PAINT_SCRIPT = """<script>
         (function(){
             try {
                 var stored = localStorage.getItem('xa-theme');
-                if (stored === 'bloom' || stored === 'chaos') {
+                if (stored === 'bloom' || stored === 'chaos' || stored === 'void') {
                     document.documentElement.setAttribute('data-theme', stored);
                     var meta = document.querySelector('meta[name="theme-color"]');
                     if (meta) meta.setAttribute('content', stored === 'bloom' ? '#f1e9da' : '#050505');
+                }
+            } catch(e) {}
+        })();
+        // auth gate — synchronous redirect before render so no flash of protected content.
+        // login page itself is exempt; everything else requires xa-token in localStorage.
+        (function(){
+            try {
+                var path = location.pathname.toLowerCase();
+                var isLogin = path.indexOf('login') !== -1;
+                var hasToken = !!localStorage.getItem('xa-token');
+                if (!isLogin && !hasToken) {
+                    var from = encodeURIComponent(location.pathname + location.search);
+                    location.replace('/login?from=' + from);
                 }
             } catch(e) {}
         })();
