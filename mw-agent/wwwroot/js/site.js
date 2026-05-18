@@ -970,51 +970,140 @@
     const dashStatus  = document.getElementById("dashStatus");
     const setStatus   = (msg) => { if (dashStatus) dashStatus.textContent = msg; };
 
+    /* collapse state — persisted in localStorage so the layout sticks across reloads */
+    const DASH_COLLAPSE_KEY = "xa-dash-collapsed";
+    const getCollapsed = () => {
+        try {
+            const raw = localStorage.getItem(DASH_COLLAPSE_KEY);
+            return raw ? new Set(JSON.parse(raw)) : new Set();
+        } catch (e) { return new Set(); }
+    };
+    const saveCollapsed = (set) => {
+        try { localStorage.setItem(DASH_COLLAPSE_KEY, JSON.stringify([...set])); } catch (e) {}
+    };
+    const isCollapsedId  = (id) => getCollapsed().has(id);
+    const togglePanelCollapse = (id) => {
+        const s = getCollapsed();
+        if (s.has(id)) s.delete(id); else s.add(id);
+        saveCollapsed(s);
+    };
+
+    const renderIntrosPanel = () => {
+        const mount = document.getElementById("dashIntrosMount");
+        if (!mount) return;
+        const intros = CONFIG.intros || {};
+        const collapsed = isCollapsedId("_intros");
+        mount.innerHTML = `
+            <div class="dash-intros gen-panel ${collapsed ? "is-collapsed" : ""}" data-panel-id="_intros">
+                <div class="panel-bar dash-panel-bar">
+                    <span class="panel-tag">¶</span>
+                    <span class="panel-name">// PROMPT_INTROS</span>
+                    <span class="panel-hint">base anchor prepended to every prompt</span>
+                    <button class="dash-collapse-btn" type="button" aria-label="Toggle">▾</button>
+                </div>
+                <div class="dash-panel-body">
+                    <div class="dash-intro-block">
+                        <div class="dash-intro-head">
+                            <span class="dash-intro-label">// IMAGE_INTRO</span>
+                            <button class="dash-intro-reset" data-intro="image" type="button">reset to default</button>
+                        </div>
+                        <textarea class="dash-intro-text" data-intro="image" rows="4" placeholder="(empty — no intro will be prepended on the image page)">${escapeHTML(intros.image || "")}</textarea>
+                    </div>
+                    <div class="dash-intro-block">
+                        <div class="dash-intro-head">
+                            <span class="dash-intro-label">// VIDEO_INTRO</span>
+                            <button class="dash-intro-reset" data-intro="video" type="button">reset to default</button>
+                        </div>
+                        <textarea class="dash-intro-text" data-intro="video" rows="4" placeholder="(empty — no intro will be prepended on the video page)">${escapeHTML(intros.video || "")}</textarea>
+                    </div>
+                </div>
+            </div>`;
+    };
+
     const renderDashboard = () => {
         if (!dashGrid) return;
+
+        // intros panel renders independently above the grid
+        renderIntrosPanel();
+
+        // sync the static "add new category" panel's collapse state
+        const newCatPanel = document.getElementById("dashNewCategory");
+        if (newCatPanel) {
+            newCatPanel.classList.toggle("is-collapsed", isCollapsedId("_new_cat"));
+        }
+
         if (!CONFIG.categories.length) {
             dashGrid.innerHTML = `<div class="dash-empty">— no categories yet. add one above. —</div>`;
             return;
         }
-        dashGrid.innerHTML = CONFIG.categories.map((cat, ci) => `
-            <div class="dash-panel gen-panel" data-cat-id="${escapeHTML(cat.id)}">
-                <div class="panel-bar">
+        dashGrid.innerHTML = CONFIG.categories.map((cat, ci) => {
+            const collapsed = isCollapsedId(cat.id);
+            const chipCount = (cat.chips || []).length;
+            return `
+            <div class="dash-panel gen-panel ${collapsed ? "is-collapsed" : ""}" data-cat-id="${escapeHTML(cat.id)}" data-panel-id="${escapeHTML(cat.id)}">
+                <div class="panel-bar dash-panel-bar">
                     <span class="panel-tag">${String(ci + 1).padStart(2, "0")}</span>
                     <input class="dash-cat-label" value="${escapeHTML(cat.label)}" maxlength="32" aria-label="Category label"/>
+                    <span class="dash-chip-count">${chipCount} chip${chipCount === 1 ? "" : "s"}</span>
                     <button class="dash-cat-remove" type="button" aria-label="Delete category">delete</button>
+                    <button class="dash-collapse-btn" type="button" aria-label="Toggle">▾</button>
                 </div>
-                <div class="dash-cat-meta">
-                    <span class="dash-cat-id">id: <code>${escapeHTML(cat.id)}</code></span>
-                    <label class="dash-toggle">
-                        <input type="checkbox" data-show="image" ${cat.showOn?.includes("image") ? "checked" : ""}/>
-                        <span>image</span>
-                    </label>
-                    <label class="dash-toggle">
-                        <input type="checkbox" data-show="video" ${cat.showOn?.includes("video") ? "checked" : ""}/>
-                        <span>video</span>
-                    </label>
-                </div>
-                <div class="dash-chips">
-                    ${(cat.chips || []).map((c, i) => `
-                        <div class="dash-chip" data-chip-i="${i}">
-                            <div class="dash-chip-head">
-                                <input class="dash-chip-label-input" value="${escapeHTML(c.label)}" maxlength="40" aria-label="Chip label"/>
-                                <button class="dash-chip-remove" type="button" aria-label="Remove chip">×</button>
+                <div class="dash-panel-body">
+                    <div class="dash-cat-meta">
+                        <span class="dash-cat-id">id: <code>${escapeHTML(cat.id)}</code></span>
+                        <label class="dash-toggle">
+                            <input type="checkbox" data-show="image" ${cat.showOn?.includes("image") ? "checked" : ""}/>
+                            <span>image</span>
+                        </label>
+                        <label class="dash-toggle">
+                            <input type="checkbox" data-show="video" ${cat.showOn?.includes("video") ? "checked" : ""}/>
+                            <span>video</span>
+                        </label>
+                    </div>
+                    <div class="dash-chips">
+                        ${(cat.chips || []).map((c, i) => `
+                            <div class="dash-chip" data-chip-i="${i}">
+                                <div class="dash-chip-head">
+                                    <input class="dash-chip-label-input" value="${escapeHTML(c.label)}" maxlength="40" aria-label="Chip label"/>
+                                    <button class="dash-chip-remove" type="button" aria-label="Remove chip">×</button>
+                                </div>
+                                <input class="dash-chip-frag-input" value="${escapeHTML(c.fragment)}" maxlength="240" aria-label="Prompt fragment"/>
                             </div>
-                            <input class="dash-chip-frag-input" value="${escapeHTML(c.fragment)}" maxlength="240" aria-label="Prompt fragment"/>
-                        </div>
-                    `).join("") || `<div class="dash-empty">— no chips yet. add one below. —</div>`}
+                        `).join("") || `<div class="dash-empty">— no chips yet. add one below. —</div>`}
+                    </div>
+                    <form class="dash-add">
+                        <input name="label"    type="text" placeholder="NEW CHIP LABEL"            maxlength="32"  required/>
+                        <input name="fragment" type="text" placeholder="prompt fragment to inject" maxlength="200" required/>
+                        <button class="dash-add-btn" type="submit"><span>+ add chip</span></button>
+                    </form>
                 </div>
-                <form class="dash-add">
-                    <input name="label"    type="text" placeholder="NEW CHIP LABEL"            maxlength="32"  required/>
-                    <input name="fragment" type="text" placeholder="prompt fragment to inject" maxlength="200" required/>
-                    <button class="dash-add-btn" type="submit"><span>+ add chip</span></button>
-                </form>
-            </div>
-        `).join("");
+            </div>`;
+        }).join("");
+
+        updateToggleAllLabel();
+    };
+
+    // collapse-all button label flips depending on current state
+    const updateToggleAllLabel = () => {
+        const btn = document.getElementById("dashToggleAll");
+        if (!btn) return;
+        const collapsed = getCollapsed();
+        // count of expandable panels (categories + intros + new_cat)
+        const allIds = ["_intros", "_new_cat", ...CONFIG.categories.map((c) => c.id)];
+        const anyExpanded = allIds.some((id) => !collapsed.has(id));
+        btn.textContent = anyExpanded ? "collapse all" : "expand all";
     };
 
     const handleDashboardInput = (e) => {
+        // intro textareas live outside the category panels
+        if (e.target.classList.contains("dash-intro-text")) {
+            const which = e.target.dataset.intro;
+            CONFIG.intros = CONFIG.intros || {};
+            CONFIG.intros[which] = e.target.value;
+            scheduleSave(setStatus);
+            return;
+        }
+
         const panel = e.target.closest(".dash-panel");
         if (!panel) return;
         const catId = panel.dataset.catId;
@@ -1052,6 +1141,32 @@
 
     const handleDashboardClick = (e) => {
         const panel = e.target.closest(".dash-panel");
+
+        // collapse / expand a panel via its chevron button
+        const collapseBtn = e.target.closest(".dash-collapse-btn");
+        if (collapseBtn) {
+            e.stopPropagation();
+            const target = collapseBtn.closest("[data-panel-id]");
+            if (!target) return;
+            const id = target.dataset.panelId;
+            togglePanelCollapse(id);
+            target.classList.toggle("is-collapsed");
+            updateToggleAllLabel();
+            return;
+        }
+
+        // intro reset → restore from CONFIG._defaultIntros
+        const introReset = e.target.closest(".dash-intro-reset");
+        if (introReset) {
+            const which = introReset.dataset.intro;
+            const defaultText = (CONFIG._defaultIntros || {})[which] || "";
+            CONFIG.intros = CONFIG.intros || {};
+            CONFIG.intros[which] = defaultText;
+            const ta = dashboardEl.querySelector(`.dash-intro-text[data-intro="${which}"]`);
+            if (ta) ta.value = defaultText;
+            scheduleSave(setStatus);
+            return;
+        }
 
         if (e.target.closest(".dash-chip-remove")) {
             if (!panel) return;
@@ -1144,6 +1259,25 @@
         dashboardEl.addEventListener("change",  handleDashboardInput);
         dashboardEl.addEventListener("click",   handleDashboardClick);
         dashboardEl.addEventListener("submit",  handleDashboardSubmit);
+
+        // "collapse all" / "expand all" toggle at the top of the dashboard
+        const toggleAll = document.getElementById("dashToggleAll");
+        if (toggleAll) {
+            toggleAll.addEventListener("click", () => {
+                const allIds = ["_intros", "_new_cat", ...CONFIG.categories.map((c) => c.id)];
+                const collapsed = getCollapsed();
+                const anyExpanded = allIds.some((id) => !collapsed.has(id));
+                if (anyExpanded) {
+                    // collapse everything
+                    allIds.forEach((id) => collapsed.add(id));
+                } else {
+                    // expand everything
+                    allIds.forEach((id) => collapsed.delete(id));
+                }
+                saveCollapsed(collapsed);
+                renderDashboard();
+            });
+        }
     }
 
     /* ---------- BOOTSTRAP ----------

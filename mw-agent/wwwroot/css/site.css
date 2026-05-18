@@ -3568,6 +3568,167 @@ body.cursor-hot .cursor-star svg {
 }
 
 /* =============================================================
+   DASHBOARD — collapsible panels + intros editor
+   ============================================================= */
+
+/* the chevron button toggles a panel's is-collapsed class */
+.dash-collapse-btn {
+    flex: 0 0 auto;
+    width: 26px;
+    height: 26px;
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    line-height: 1;
+    color: var(--ink-mute);
+    background: transparent;
+    border: 1px solid var(--line);
+    transition: color 0.15s, border-color 0.15s, background-color 0.15s, transform 0.25s ease;
+}
+.dash-collapse-btn:hover {
+    color: var(--ink);
+    border-color: var(--ink-dim);
+    background: rgba(255,255,255,0.04);
+}
+.is-collapsed > .dash-panel-bar .dash-collapse-btn,
+.is-collapsed > .panel-bar.dash-panel-bar .dash-collapse-btn {
+    transform: rotate(-90deg);
+}
+
+/* hide the body when collapsed */
+.dash-panel-body {
+    display: block;
+}
+.is-collapsed > .dash-panel-body {
+    display: none;
+}
+
+/* chip count badge — only useful when collapsed */
+.dash-chip-count {
+    font-family: var(--mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.16em;
+    color: var(--ink-mute);
+    padding: 0.2rem 0.55rem;
+    border: 1px solid var(--line);
+    background: rgba(255,255,255,0.02);
+}
+
+/* toggle-all button next to "reset everything" */
+.dash-toggle-all {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.18em;
+    color: var(--ink-mute);
+    padding: 0.4rem 0.85rem;
+    border: 1px solid var(--line);
+    background: transparent;
+    transition: color 0.15s, border-color 0.15s, background-color 0.15s;
+}
+.dash-toggle-all:hover {
+    color: var(--ink);
+    border-color: var(--ink-dim);
+    background: rgba(255,255,255,0.04);
+}
+
+/* intros editor — base anchor prompt that prepends every generation */
+.dash-intros {
+    margin-top: 1.4rem;
+}
+.dash-intro-block {
+    margin-bottom: 1rem;
+}
+.dash-intro-block:last-child { margin-bottom: 0; }
+.dash-intro-head {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    margin-bottom: 0.4rem;
+}
+.dash-intro-label {
+    font-family: var(--mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.22em;
+    color: var(--ink-mute);
+}
+.dash-intro-reset {
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.14em;
+    color: var(--ink-mute);
+    padding: 0.25rem 0.55rem;
+    border: 1px solid var(--line);
+    background: transparent;
+    transition: color 0.15s, border-color 0.15s, background-color 0.15s;
+}
+.dash-intro-reset:hover {
+    color: var(--accent-hot);
+    border-color: var(--accent-hot);
+    background: rgba(255,255,255,0.04);
+}
+.dash-intro-text {
+    width: 100%;
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.02em;
+    color: var(--ink);
+    background: rgba(0,0,0,0.4);
+    border: 1px solid var(--line);
+    padding: 0.8rem 0.95rem;
+    line-height: 1.55;
+    resize: vertical;
+    min-height: 5em;
+    cursor: text;
+    transition: border-color 0.15s, background-color 0.15s;
+}
+.dash-intro-text::placeholder { color: var(--ink-mute); letter-spacing: 0.04em; }
+.dash-intro-text:focus {
+    outline: none;
+    border-color: var(--ink-dim);
+    background: rgba(0,0,0,0.6);
+}
+
+/* bloom overrides */
+[data-theme="bloom"] .dash-collapse-btn { border-radius: 50%; }
+[data-theme="bloom"] .dash-chip-count   {
+    font-family: var(--sans);
+    text-transform: lowercase;
+    letter-spacing: 0.06em;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.4);
+}
+[data-theme="bloom"] .dash-toggle-all   {
+    font-family: var(--sans);
+    text-transform: lowercase;
+    letter-spacing: 0.04em;
+    border-radius: 999px;
+}
+[data-theme="bloom"] .dash-toggle-all:hover { color: var(--accent); border-color: var(--accent); background: rgba(193,154,107,0.08); }
+[data-theme="bloom"] .dash-intro-label  {
+    font-family: var(--sans);
+    text-transform: lowercase;
+    letter-spacing: 0.08em;
+}
+[data-theme="bloom"] .dash-intro-reset  {
+    font-family: var(--sans);
+    text-transform: lowercase;
+    letter-spacing: 0.04em;
+    border-radius: 999px;
+}
+[data-theme="bloom"] .dash-intro-text   {
+    font-family: var(--sans);
+    text-transform: none;
+    letter-spacing: 0.01em;
+    background: rgba(255,255,255,0.55);
+    border-radius: 14px;
+    color: var(--ink);
+}
+[data-theme="bloom"] .dash-intro-text:focus {
+    background: rgba(255,255,255,0.85);
+    border-color: var(--accent);
+}
+
+/* =============================================================
    DASHBOARD — chip customizer
    ============================================================= */
 

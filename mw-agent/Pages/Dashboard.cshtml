@@ -11,30 +11,37 @@
         <p class="gen-lede">edit any chip. delete what you don't use. add new categories on the fly.</p>
         <div class="dash-status-row">
             <span class="dash-status" id="dashStatus">connecting…</span>
+            <button class="dash-toggle-all" type="button" id="dashToggleAll">collapse all</button>
             <button class="dash-reset-all" type="button" id="dashResetAll">reset everything</button>
         </div>
     </div>
 
-    <form class="dash-new-cat gen-panel" id="dashNewCategory">
-        <div class="panel-bar">
+    <!-- intros editor (rendered by JS so values stay in sync with CONFIG) -->
+    <div id="dashIntrosMount"></div>
+
+    <form class="dash-new-cat gen-panel is-collapsed" id="dashNewCategory" data-panel-id="_new_cat">
+        <div class="panel-bar dash-panel-bar">
             <span class="panel-tag">+</span>
             <span class="panel-name">// ADD_NEW_CATEGORY</span>
             <span class="panel-hint">a new panel of chips on image / video</span>
+            <button class="dash-collapse-btn" type="button" aria-label="Toggle">▾</button>
         </div>
-        <div class="dash-new-cat-row">
-            <input name="label" type="text" placeholder="CATEGORY NAME  (e.g. LIGHTING)" maxlength="32" required/>
-            <input name="hint"  type="text" placeholder="hint text  (e.g. light direction)" maxlength="40"/>
-            <div class="dash-new-cat-toggles">
-                <label class="dash-toggle">
-                    <input type="checkbox" name="image" checked/>
-                    <span>image</span>
-                </label>
-                <label class="dash-toggle">
-                    <input type="checkbox" name="video" checked/>
-                    <span>video</span>
-                </label>
+        <div class="dash-panel-body">
+            <div class="dash-new-cat-row">
+                <input name="label" type="text" placeholder="CATEGORY NAME  (e.g. LIGHTING)" maxlength="32" required/>
+                <input name="hint"  type="text" placeholder="hint text  (e.g. light direction)" maxlength="40"/>
+                <div class="dash-new-cat-toggles">
+                    <label class="dash-toggle">
+                        <input type="checkbox" name="image" checked/>
+                        <span>image</span>
+                    </label>
+                    <label class="dash-toggle">
+                        <input type="checkbox" name="video" checked/>
+                        <span>video</span>
+                    </label>
+                </div>
+                <button class="dash-add-btn dash-new-cat-btn" type="submit"><span>+ create category</span></button>
             </div>
-            <button class="dash-add-btn dash-new-cat-btn" type="submit"><span>+ create category</span></button>
         </div>
     </form>
 
