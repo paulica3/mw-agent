@@ -443,7 +443,13 @@
         .replace(/'/g, "&#39;");
 
     /* in-memory copy of the entire config; one source of truth on the page. */
-    let CONFIG = { categories: [] };
+    let CONFIG = { categories: [], intros: {} };
+
+    /* assembly order for the prompt. categories not in this list are appended
+       after, in their natural order. some groups (size, duration) are config
+       params for the API and never appear in the prompt text itself. */
+    const PROMPT_ORDER       = ["theme", "style", "camera", "motion", "mood", "color"];
+    const PROMPT_EXCLUDE_SET = new Set(["size", "duration"]);
 
     const cacheRead = () => {
         try {
@@ -524,14 +530,29 @@
     const renderReadout = () => {
         if (!readout) return;
         if (userEditedPrompt) { syncReadoutChrome(); return; }  // don't clobber user edits
+
+        // assemble in canonical order: intro → theme → style → camera/motion → mood → color → director
         const parts = [];
-        for (const group of Object.keys(selections)) {
+
+        // intro anchors the model in our specific use case (rap music video aesthetic)
+        const intro = CONFIG.intros?.[PAGE];
+        if (intro) parts.push(intro);
+
+        // ordered chip fragments
+        const known      = new Set(PROMPT_ORDER);
+        const ordered    = PROMPT_ORDER.filter((g) => g in selections);
+        const extra      = Object.keys(selections).filter((g) => !known.has(g) && !PROMPT_EXCLUDE_SET.has(g));
+        for (const group of [...ordered, ...extra]) {
             const frag = getFragment(group, selections[group]);
             if (frag) parts.push(frag);
         }
+
+        // director's note last — most specific intent
         const note = director?.value?.trim();
         if (note) parts.push(note);
-        readout.textContent = parts.join(", ");   // empty string → placeholder via :empty class
+
+        // ". " joining reads as full sentences, which is what kling + flux prefer
+        readout.textContent = parts.join(". ");
         syncReadoutChrome();
     };
 

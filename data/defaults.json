@@ -1,55 +1,89 @@
 {
+  "intros": {
+    "image": "Album cover artwork or music video still frame for a contemporary new-wave / underground rap artist (rage scene, opium aesthetic, hyperpop-adjacent). Magazine-quality professional photography, hyper-detailed textures, dramatic cinematic composition, color-graded master file, 4K master.",
+    "video": "Cinematic music video footage for a contemporary new-wave / underground rap artist (rage scene, opium aesthetic, hyperpop-adjacent). Hyper-detailed professional cinematography, color-graded final cut, broadcast-quality master suitable for full music video use."
+  },
   "categories": [
     {
       "id": "theme",
       "label": "THEME",
-      "hint": "choose one",
+      "hint": "visual world",
       "showOn": ["image", "video"],
       "chips": [
-        { "value": "futuristic", "label": "FUTURISTIC", "fragment": "cinematic futuristic aesthetic, holographic overlays, neon-lit" },
-        { "value": "surreal",    "label": "SURREAL",    "fragment": "dreamlike surreal imagery, impossible geometry" },
-        { "value": "gritty",     "label": "GRITTY",     "fragment": "raw gritty urban texture, harsh contrast" },
-        { "value": "dreamlike",  "label": "DREAMLIKE",  "fragment": "soft pastel dreamscape, hazy diffusion" },
-        { "value": "retro",      "label": "RETRO",      "fragment": "vintage analog film grain, warm faded tones" },
-        { "value": "classic",    "label": "CLASSIC",    "fragment": "timeless cinematic composition, rich shadows" }
+        { "value": "futuristic",   "label": "FUTURISTIC",   "fragment": "futuristic dystopian cityscape with holographic UI overlays, neon-soaked rain-slick streets, chrome surfaces, retro-tech advanced civilization, Blade Runner 2049 / Ghost in the Shell influence" },
+        { "value": "surreal",      "label": "SURREAL",      "fragment": "surreal dreamlike imagery, melting impossible geometry, floating displaced objects, distorted depth, David Lynch / Gaspar Noé influence with a fever-dream logic" },
+        { "value": "gritty",       "label": "GRITTY",       "fragment": "raw gritty urban texture, harsh industrial concrete and rebar, peeling paint, broken sodium streetlights, abandoned warehouse atmosphere, documentary realism" },
+        { "value": "dreamlike",    "label": "DREAMLIKE",    "fragment": "soft pastel dreamscape, hazy ethereal diffusion, gauzy bloom lighting, cotton-candy cloud palette, Sofia Coppola / Petra Collins influence" },
+        { "value": "retro",        "label": "RETRO",        "fragment": "vintage 90s VHS aesthetic, analog film grain, warm faded tones, CRT scanlines, chromatic aberration, found-footage warmth" },
+        { "value": "classic",      "label": "CLASSIC",      "fragment": "timeless cinematic composition, deep chiaroscuro shadows, prestige film grade, anamorphic spherical lens, Roger Deakins / Greig Fraser influence" },
+        { "value": "rage",         "label": "RAGE_ANIME",   "fragment": "anime-inspired rage aesthetic with hard cell-shading and dramatic speed lines, intense emotional close-ups, manga panel composition, mosh-pit kinetic energy" },
+        { "value": "opium",        "label": "OPIUM",        "fragment": "opium-core gothic dark aesthetic, religious iconography, vampire-pale skin tones, derelict-luxury interiors, low-key candlelight, Carti / Destroy Lonely visual world" },
+        { "value": "cyberpunk",    "label": "CYBERPUNK",    "fragment": "cyberpunk neon-drenched megacity, rain-slick streets reflecting holographic billboards, augmented bodies and chrome implants, dense layered urban density" }
+      ]
+    },
+    {
+      "id": "style",
+      "label": "STYLE",
+      "hint": "visual signature",
+      "showOn": ["image", "video"],
+      "chips": [
+        { "value": "music_video",  "label": "MUSIC_VIDEO",   "fragment": "professional music video aesthetic, performance-driven framing centered on the artist, on-beat editing rhythm implied, magazine-cover composition" },
+        { "value": "vhs_lofi",     "label": "VHS_LOFI",      "fragment": "VHS lo-fi tape aesthetic, analog scanlines, RGB chromatic aberration, tracking errors, time-code burn-in, degraded found-footage warmth" },
+        { "value": "noir",         "label": "NEO_NOIR",      "fragment": "neo-noir film stock, deep crushed shadows, venetian-blind shadow patterns, cigarette smoke in cold lamplight, fatalistic prestige mood" },
+        { "value": "docu",         "label": "DOCUMENTARY",   "fragment": "raw documentary cinematography, observational verite realism, available natural light only, naturalistic candid framing, 16mm grain" },
+        { "value": "dreampop",     "label": "DREAMPOP",      "fragment": "dream-pop visual aesthetic, soft blooming light wash, prismatic lens flares, ethereal halation glow, Beach House / Mazzy Star album-cover palette" },
+        { "value": "glitch",       "label": "GLITCH_ART",    "fragment": "glitch-art aesthetic, datamoshing pixel sort artifacts, RGB channel separation, digital decay, vaporwave / hyperpop video influence" },
+        { "value": "religious",    "label": "RELIGIOUS",     "fragment": "byzantine religious iconography influence, gold-leaf framing, halo backlight, gothic cathedral atmosphere, Renaissance painting composition" },
+        { "value": "hood",         "label": "HOOD_REAL",     "fragment": "raw inner-city realism, late-night corner-store ambient light, sodium streetlamp orange, project-rooftop skyline, Hype Williams / Director X visual lineage" }
       ]
     },
     {
       "id": "mood",
       "label": "MOOD",
-      "hint": "energy of the frame",
+      "hint": "emotional energy",
       "showOn": ["image", "video"],
       "chips": [
-        { "value": "dark",        "label": "DARK_&_TENSE", "fragment": "dark & tense atmosphere" },
-        { "value": "euphoric",    "label": "EUPHORIC",     "fragment": "euphoric high-energy mood" },
-        { "value": "melancholic", "label": "MELANCHOLIC",  "fragment": "melancholic introspective tone" },
-        { "value": "chaotic",     "label": "CHAOTIC",      "fragment": "chaotic frantic energy" }
+        { "value": "dark",         "label": "DARK_&_TENSE",  "fragment": "dark and tense oppressive atmosphere, foreboding silence, heavy emotional weight, dread building under the surface" },
+        { "value": "euphoric",     "label": "EUPHORIC",      "fragment": "euphoric high-energy ecstasy, blissful surrender, raised hands and open mouths, neon haze of joy and release" },
+        { "value": "melancholic",  "label": "MELANCHOLIC",   "fragment": "melancholic introspective tone, a lone figure dwarfed by vast space, blue-hour solitude, dignified quiet sadness" },
+        { "value": "chaotic",      "label": "CHAOTIC",       "fragment": "chaotic frantic energy, mosh-pit intensity, swarming bodies, controlled chaos with implied rapid cuts" },
+        { "value": "confident",    "label": "CONFIDENT",     "fragment": "swagger confidence, slow-motion power walk, dripping in chains and designer pieces, cold intimidating stare, untouchable energy" },
+        { "value": "hypnotic",     "label": "HYPNOTIC",      "fragment": "hypnotic trance-like mood, rhythmic visual loops, repetitive symmetric motion, narcotic dream-haze atmosphere" },
+        { "value": "menacing",     "label": "MENACING",      "fragment": "menacing predatory vibe, low-angle hero shots, shadows pooling around the figure, weight-of-the-world stillness" }
       ]
     },
     {
       "id": "camera",
       "label": "CAMERA",
-      "hint": "point of view",
+      "hint": "shot + lens",
       "showOn": ["image"],
       "chips": [
-        { "value": "wide",        "label": "WIDE_CINEMATIC", "fragment": "wide cinematic shot" },
-        { "value": "close",       "label": "CLOSE_UP_RAW",   "fragment": "intimate close-up, shallow depth" },
-        { "value": "drone",       "label": "DRONE",          "fragment": "aerial drone perspective" },
-        { "value": "slow_motion", "label": "SLOW_MOTION",    "fragment": "ultra slow motion" }
+        { "value": "wide",        "label": "WIDE_CINEMATIC",  "fragment": "wide cinematic establishing shot framed for 2.39:1 anamorphic, horizontal lens flares, shot on ARRI Alexa Mini LF with Cooke Anamorphic prime" },
+        { "value": "close",       "label": "CLOSE_UP_RAW",    "fragment": "intimate extreme close-up, f/1.4 shallow depth of field with creamy bokeh, every skin pore and stray hair visible, shot on Sony Venice 2 with 85mm Master Prime" },
+        { "value": "drone",       "label": "DRONE_AERIAL",    "fragment": "aerial drone perspective, sweeping bird's-eye view revealing geometric urban patterns, DJI Inspire 3 cinematic drone footage with smooth gimbal tracking" },
+        { "value": "slow_mo",     "label": "FROZEN_MOMENT",   "fragment": "ultra slow-motion frozen instant, individual water droplets and dust particles suspended mid-air, 1000fps Phantom Flex hyper-detail" },
+        { "value": "dutch",       "label": "DUTCH_ANGLE",     "fragment": "dutch-angle composition, tilted horizon for psychological unease, off-kilter expressionist framing recalling Kubrick / Anderson outliers" },
+        { "value": "pov",         "label": "POV_INTIMATE",    "fragment": "first-person POV perspective, eye-level handheld immediacy, immersive subjective viewpoint, GoPro / iPhone aesthetic for raw intimacy" },
+        { "value": "fisheye",     "label": "FISHEYE",         "fragment": "fisheye lens distortion, exaggerated 180-degree wide-angle warp, skate-video aesthetic, peephole composition with curved horizon" },
+        { "value": "low_angle",   "label": "LOW_ANGLE_HERO",  "fragment": "low-angle hero shot looking up at the subject, towering dominant composition, sky filling the upper frame, subject framed as god-tier" }
       ]
     },
     {
       "id": "motion",
       "label": "MOTION",
-      "hint": "how it moves",
+      "hint": "how the camera moves",
       "showOn": ["video"],
       "chips": [
-        { "value": "static",   "label": "STATIC_HOLD",   "fragment": "static locked frame" },
-        { "value": "slow_pan", "label": "SLOW_PAN",      "fragment": "slow lateral pan" },
-        { "value": "dolly",    "label": "DOLLY_PUSH",    "fragment": "dolly push toward subject" },
-        { "value": "orbit",    "label": "ORBIT",         "fragment": "orbiting camera" },
-        { "value": "handheld", "label": "HANDHELD",      "fragment": "handheld shaky cam" },
-        { "value": "warp",     "label": "REALITY_WARP",  "fragment": "reality-warping camera motion" }
+        { "value": "static",      "label": "STATIC_HOLD",     "fragment": "static locked-off tripod frame, no camera movement at all, observational stillness while only the subject moves within the frame" },
+        { "value": "slow_pan",    "label": "SLOW_PAN",        "fragment": "slow horizontal lateral pan, languid sweeping motion across the scene, deliberate anticipation build" },
+        { "value": "dolly",       "label": "DOLLY_PUSH",      "fragment": "smooth dolly push slowly closing on the subject, gradual emotional intensification, Hitchcock-style controlled approach" },
+        { "value": "orbit",       "label": "ORBIT",           "fragment": "orbiting camera circling the subject in full 360-degree reveal, rotating dramatic build, hero shot energy" },
+        { "value": "handheld",    "label": "HANDHELD",        "fragment": "raw handheld shaky-cam, documentary verite immediacy, breathing camera with slight motion blur, urgent close energy" },
+        { "value": "warp",        "label": "REALITY_WARP",    "fragment": "reality-warping camera motion, impossible physics, gravity-defying spin, dream-logic movement with morphing perspective" },
+        { "value": "whip_pan",    "label": "WHIP_PAN",        "fragment": "fast whip-pan transition with motion-blur streaks, frenetic music-video editing energy, snap-cut rhythm" },
+        { "value": "tracking",    "label": "TRACKING_SHOT",   "fragment": "smooth tracking shot following the subject from the side, gimbal-stabilized pursuit, walking-and-talking energy" },
+        { "value": "zoom_pulse",  "label": "ZOOM_PULSE",      "fragment": "rhythmic zoom pulse, snap zoom-ins punctuating beats, music-video bass-drop visual rhythm" },
+        { "value": "crash_zoom",  "label": "CRASH_ZOOM",      "fragment": "aggressive crash zoom into the subject, vintage 70s grindhouse energy, shocking reveal punctuation" }
       ]
     }
   ]
