@@ -2415,6 +2415,36 @@ body.cursor-hot .cursor-star svg {
     .nav-logout  { margin-left: 0.3rem; padding: 0.3rem 0.45rem; }
 }
 
+/* chip with a small cost annotation (used on QUALITY group) */
+.chip--cost {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.chip-cost {
+    font-family: var(--mono);
+    font-size: 0.58rem;
+    letter-spacing: 0.06em;
+    color: var(--ink-mute);
+    padding: 0.12rem 0.4rem;
+    border: 1px solid var(--line);
+    background: rgba(255,255,255,0.025);
+    border-radius: 2px;
+}
+.chip--cost:hover .chip-cost { color: var(--ink-dim); border-color: var(--line-2); }
+.chip.is-selected .chip-cost {
+    color: var(--bg);
+    background: rgba(0,0,0,0.18);
+    border-color: rgba(0,0,0,0.25);
+}
+[data-theme="bloom"] .chip-cost {
+    font-family: var(--sans);
+    text-transform: lowercase;
+    letter-spacing: 0.04em;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.4);
+}
+
 /* =============================================================
    GENERATION MODAL — overlay for rendering progress + result
    ============================================================= */

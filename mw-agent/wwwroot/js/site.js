@@ -420,10 +420,13 @@
         duration: {
             "5": "5s clip", "10": "10s clip",
         },
-        // size doesn't add prompt text (it's only a config parameter for the API),
-        // but listing keys here so the readout doesn't show "undefined" for them
+        // size + quality are API config parameters, not prompt text.
+        // listed here so the readout doesn't show "undefined" for them.
         size: {
             "1:1": "", "16:9": "", "9:16": "", "21:9": "", "4:3": "", "3:4": "",
+        },
+        quality: {
+            "draft": "", "standard": "", "pro": "", "master": "",
         },
     };
 
@@ -449,7 +452,7 @@
        after, in their natural order. some groups (size, duration) are config
        params for the API and never appear in the prompt text itself. */
     const PROMPT_ORDER       = ["theme", "style", "camera", "motion", "mood", "color"];
-    const PROMPT_EXCLUDE_SET = new Set(["size", "duration"]);
+    const PROMPT_EXCLUDE_SET = new Set(["size", "duration", "quality"]);
 
     const cacheRead = () => {
         try {
@@ -1024,8 +1027,9 @@
         const file = fileInput?.files?.[0];
         const req = {
             prompt,
-            duration:    selections.duration || "5",     // video only
-            aspectRatio: selections.size     || "1:1",    // image only
+            duration:    selections.duration || "5",          // video only
+            aspectRatio: selections.size     || "1:1",         // image only
+            quality:     selections.quality  || "standard",    // video only (defaults to v1-6 std)
             page: PAGE,
         };
         if (file) {

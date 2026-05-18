@@ -42,8 +42,16 @@ KLING_ACCESS_KEY = os.environ.get("KLING_ACCESS_KEY", "")
 KLING_SECRET_KEY = os.environ.get("KLING_SECRET_KEY", "")
 KLING_API_BASE   = os.environ.get("KLING_API_BASE", "https://api.klingai.com").rstrip("/")
 
-# kling-v1 is the cheapest standard model; user can override via env var
-KLING_MODEL = os.environ.get("KLING_MODEL", "kling-v1")
+# fallback model if no quality preset is matched (or env override)
+KLING_MODEL = os.environ.get("KLING_MODEL", "kling-v1-6")
+
+# quality preset → (model_name, mode). frontend "QUALITY" chip selects one.
+QUALITY_PRESETS = {
+    "draft":    {"model": "kling-v1-5",      "mode": "std"},
+    "standard": {"model": "kling-v1-6",      "mode": "std"},
+    "pro":      {"model": "kling-v1-6",      "mode": "pro"},
+    "master":   {"model": "kling-v2-master", "mode": "std"},
+}
 
 
 def _b64url(data: bytes) -> str:
@@ -118,33 +126,39 @@ class handler(BaseHTTPRequestHandler):
             reference = req.get("reference")
             ref_type  = req.get("referenceType")
 
+            # resolve model + mode from quality preset (frontend chip)
+            quality = (req.get("quality") or "standard").lower()
+            preset  = QUALITY_PRESETS.get(quality)
+            if preset:
+                model_name = preset["model"]
+                mode       = preset["mode"]
+            else:
+                model_name = KLING_MODEL  # fallback to env var
+                mode       = "std"
+
             token = make_jwt(KLING_ACCESS_KEY, KLING_SECRET_KEY)
 
             # image-to-video if a reference image was supplied, otherwise text-to-video
             if reference and ref_type == "image":
-                kling_resp = _kling_post(
-                    "/v1/videos/image2video",
-                    {
-                        "model_name":   KLING_MODEL,
-                        "image":        _strip_data_url(reference),
-                        "prompt":       prompt,
-                        "duration":     duration,
-                        "aspect_ratio": "16:9",
-                    },
-                    token,
-                )
+                body = {
+                    "model_name":   model_name,
+                    "mode":         mode,
+                    "image":        _strip_data_url(reference),
+                    "prompt":       prompt,
+                    "duration":     duration,
+                    "aspect_ratio": "16:9",
+                }
+                kling_resp    = _kling_post("/v1/videos/image2video", body, token)
                 endpoint_kind = "image2video"
             else:
-                kling_resp = _kling_post(
-                    "/v1/videos/text2video",
-                    {
-                        "model_name":   KLING_MODEL,
-                        "prompt":       prompt,
-                        "duration":     duration,
-                        "aspect_ratio": "16:9",
-                    },
-                    token,
-                )
+                body = {
+                    "model_name":   model_name,
+                    "mode":         mode,
+                    "prompt":       prompt,
+                    "duration":     duration,
+                    "aspect_ratio": "16:9",
+                }
+                kling_resp    = _kling_post("/v1/videos/text2video", body, token)
                 endpoint_kind = "text2video"
 
             # Kling responses wrap data in { code, message, data: { task_id, ... } }
