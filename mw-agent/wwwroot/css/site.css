@@ -2415,6 +2415,188 @@ body.cursor-hot .cursor-star svg {
     .nav-logout  { margin-left: 0.3rem; padding: 0.3rem 0.45rem; }
 }
 
+/* =============================================================
+   ENHANCE BUTTON + PRESET BAR + AUDIO SYNC (gen-foot extensions)
+   ============================================================= */
+.readout-enhance {
+    font-family: var(--mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.16em;
+    color: var(--accent-hot);
+    padding: 0.25rem 0.6rem;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.04);
+    transition: color 0.15s, border-color 0.15s, background-color 0.15s;
+}
+.readout-enhance:hover {
+    color: #fff;
+    border-color: #fff;
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 16px rgba(255, 255, 255, 0.25);
+}
+.readout-enhance:disabled { opacity: 0.6; cursor: not-allowed; }
+[data-theme="bloom"] .readout-enhance {
+    font-family: var(--sans);
+    text-transform: lowercase;
+    letter-spacing: 0.04em;
+    border-radius: 999px;
+    color: var(--accent);
+    background: rgba(193, 154, 107, 0.1);
+    border-color: rgba(193, 154, 107, 0.4);
+}
+[data-theme="bloom"] .readout-enhance:hover {
+    color: var(--ink);
+    background: var(--accent);
+    border-color: var(--accent);
+    box-shadow: 0 0 18px rgba(193, 154, 107, 0.4);
+}
+
+/* preset bar — sits between the readout and the GENERATE button */
+.preset-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    flex-wrap: wrap;
+    margin-top: 0.9rem;
+    padding-top: 0.9rem;
+    border-top: 1px dashed var(--line);
+}
+.preset-label {
+    font-family: var(--mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.2em;
+    color: var(--ink-mute);
+}
+.preset-list {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+.preset-empty {
+    font-family: var(--mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.14em;
+    color: var(--ink-mute);
+    font-style: italic;
+}
+.preset-chip {
+    display: inline-flex;
+    align-items: stretch;
+    border: 1px solid var(--line);
+    background: rgba(255, 255, 255, 0.02);
+    transition: border-color 0.15s, background-color 0.15s;
+}
+.preset-chip:hover { border-color: var(--ink-dim); background: rgba(255, 255, 255, 0.05); }
+.preset-apply {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    color: var(--ink);
+    padding: 0.4rem 0.7rem;
+    background: transparent;
+    border: 0;
+    cursor: none;
+}
+.preset-apply:hover { color: var(--accent-hot); }
+.preset-remove {
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    line-height: 1;
+    color: var(--ink-mute);
+    padding: 0 0.45rem;
+    background: transparent;
+    border: 0;
+    border-left: 1px solid var(--line);
+    cursor: none;
+    transition: color 0.15s, background-color 0.15s;
+}
+.preset-remove:hover { color: #ff5577; background: rgba(255, 85, 119, 0.06); }
+.preset-save {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    color: var(--ink-dim);
+    padding: 0.4rem 0.8rem;
+    background: transparent;
+    border: 1px dashed var(--line);
+    transition: color 0.15s, border-color 0.15s, background-color 0.15s;
+}
+.preset-save:hover {
+    color: var(--accent-hot);
+    border-color: var(--accent-hot);
+    border-style: solid;
+    background: rgba(255, 255, 255, 0.04);
+}
+
+[data-theme="bloom"] .preset-bar { border-top-style: solid; }
+[data-theme="bloom"] .preset-label { font-family: var(--sans); text-transform: lowercase; letter-spacing: 0.06em; }
+[data-theme="bloom"] .preset-chip { border-radius: 999px; background: rgba(255, 255, 255, 0.4); }
+[data-theme="bloom"] .preset-apply { font-family: var(--serif); font-size: 0.9rem; font-style: italic; letter-spacing: 0; }
+[data-theme="bloom"] .preset-remove { border-left-color: var(--line); border-radius: 0 999px 999px 0; }
+[data-theme="bloom"] .preset-save {
+    font-family: var(--sans);
+    text-transform: lowercase;
+    letter-spacing: 0.04em;
+    border-radius: 999px;
+    border-style: solid;
+    color: var(--accent);
+    border-color: var(--accent);
+}
+
+/* audio sync panel */
+.dropzone--audio .drop-cross { font-size: 1.8rem; }
+.audio-readout {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    flex-wrap: wrap;
+    margin-top: 0.8rem;
+    padding: 0.7rem 0.9rem;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--line);
+}
+.audio-stat {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.4rem;
+}
+.audio-stat-label {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.18em;
+    color: var(--ink-mute);
+    text-transform: uppercase;
+}
+.audio-stat-val {
+    font-family: var(--pix);
+    font-size: 0.85rem;
+    letter-spacing: 0.04em;
+    color: var(--accent-hot);
+}
+.audio-clear {
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.16em;
+    color: var(--ink-mute);
+    padding: 0.3rem 0.6rem;
+    border: 1px solid var(--line);
+    background: transparent;
+    transition: color 0.15s, border-color 0.15s;
+}
+.audio-clear:hover { color: #ff5577; border-color: #ff5577; }
+
+[data-theme="bloom"] .audio-readout {
+    background: rgba(255, 255, 255, 0.4);
+    border-radius: 14px;
+}
+[data-theme="bloom"] .audio-stat-label { font-family: var(--sans); text-transform: lowercase; letter-spacing: 0.06em; }
+[data-theme="bloom"] .audio-stat-val   { font-family: var(--serif); font-size: 1.1rem; color: var(--accent); letter-spacing: 0; }
+[data-theme="bloom"] .audio-clear      { font-family: var(--sans); text-transform: lowercase; letter-spacing: 0.04em; border-radius: 999px; }
+
 /* chip with a small cost annotation (used on QUALITY group) */
 .chip--cost {
     display: inline-flex;

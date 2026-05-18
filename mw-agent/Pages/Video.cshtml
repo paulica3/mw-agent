@@ -32,13 +32,13 @@
             <div class="panel-bar">
                 <span class="panel-tag"></span>
                 <span class="panel-name">// QUALITY</span>
-                <span class="panel-hint">cost vs detail · per 5s clip</span>
+                <span class="panel-hint">render performance tier</span>
             </div>
             <div class="chip-grid" data-group="quality">
-                <button class="chip chip--cost" data-value="draft">DRAFT<span class="chip-cost">~$0.10</span></button>
-                <button class="chip chip--cost" data-value="standard">STANDARD<span class="chip-cost">~$0.14</span></button>
-                <button class="chip chip--cost" data-value="pro">PRO<span class="chip-cost">~$0.49</span></button>
-                <button class="chip chip--cost" data-value="master">MASTER<span class="chip-cost">~$1.40</span></button>
+                <button class="chip chip--cost" data-value="draft">DRAFT<span class="chip-cost">fast</span></button>
+                <button class="chip chip--cost" data-value="standard">STANDARD<span class="chip-cost">balanced</span></button>
+                <button class="chip chip--cost" data-value="pro">PRO<span class="chip-cost">sharp</span></button>
+                <button class="chip chip--cost" data-value="master">MASTER<span class="chip-cost">premium</span></button>
             </div>
         </div>
 
@@ -61,6 +61,28 @@
         <div class="gen-panel gen-panel--wide">
             <div class="panel-bar">
                 <span class="panel-tag"></span>
+                <span class="panel-name">// AUDIO_SYNC</span>
+                <span class="panel-hint">optional. analyze a track for tempo + energy.</span>
+            </div>
+            <label class="dropzone dropzone--audio" for="audioUpload">
+                <input id="audioUpload" type="file" accept="audio/*" hidden>
+                <div class="dropzone-inner">
+                    <div class="drop-cross">♪</div>
+                    <div class="drop-text">DROP &middot; AUDIO</div>
+                    <div class="drop-sub" id="audioSub">no audio loaded</div>
+                </div>
+            </label>
+            <div class="audio-readout" id="audioReadout" hidden>
+                <span class="audio-stat"><span class="audio-stat-label">bpm</span><span class="audio-stat-val" id="audioBpm">—</span></span>
+                <span class="audio-stat"><span class="audio-stat-label">duration</span><span class="audio-stat-val" id="audioDur">—</span></span>
+                <span class="audio-stat"><span class="audio-stat-label">energy</span><span class="audio-stat-val" id="audioEnergy">—</span></span>
+                <button class="audio-clear" id="audioClear" type="button">clear</button>
+            </div>
+        </div>
+
+        <div class="gen-panel gen-panel--wide">
+            <div class="panel-bar">
+                <span class="panel-tag"></span>
                 <span class="panel-name">// DIRECTOR_NOTES</span>
                 <span class="panel-hint">optional. one line of intent.</span>
             </div>
@@ -72,11 +94,17 @@
         <div class="prompt-readout">
             <div class="readout-head">
                 <span class="readout-label">// ASSEMBLED_SIGNAL</span>
+                <button class="readout-enhance" id="readoutEnhance" type="button" title="Rewrite the prompt with AI">✦ enhance</button>
                 <button class="readout-reset" id="readoutReset" type="button" hidden>↺ reset to auto</button>
             </div>
             <div class="readout-body is-empty" id="promptReadout"
                  contenteditable="plaintext-only" spellcheck="false"
                  data-placeholder="— awaiting input · click to edit —"></div>
+        </div>
+        <div class="preset-bar" id="presetBar">
+            <span class="preset-label">// PRESETS</span>
+            <div class="preset-list" id="presetList"></div>
+            <button class="preset-save" id="presetSave" type="button">+ save current</button>
         </div>
         <button class="generate" id="generateBtn">
             <span class="gen-label">RENDER</span>

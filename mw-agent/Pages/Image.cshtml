@@ -76,11 +76,17 @@
         <div class="prompt-readout">
             <div class="readout-head">
                 <span class="readout-label">// ASSEMBLED_SIGNAL</span>
+                <button class="readout-enhance" id="readoutEnhance" type="button" title="Rewrite the prompt with AI">✦ enhance</button>
                 <button class="readout-reset" id="readoutReset" type="button" hidden>↺ reset to auto</button>
             </div>
             <div class="readout-body is-empty" id="promptReadout"
                  contenteditable="plaintext-only" spellcheck="false"
                  data-placeholder="— awaiting input · click to edit —"></div>
+        </div>
+        <div class="preset-bar" id="presetBar">
+            <span class="preset-label">// PRESETS</span>
+            <div class="preset-list" id="presetList"></div>
+            <button class="preset-save" id="presetSave" type="button">+ save current</button>
         </div>
         <button class="generate" id="generateBtn">
             <span class="gen-label">GENERATE</span>

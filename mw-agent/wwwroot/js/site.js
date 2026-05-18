@@ -550,6 +550,14 @@
             if (frag) parts.push(frag);
         }
 
+        // audio-derived pacing/energy (if a track was uploaded)
+        if (typeof audioMeta !== "undefined" && audioMeta) {
+            const bits = [];
+            if (audioMeta.bpm)    bits.push(`synced to a ${audioMeta.bpm} BPM track`);
+            if (audioMeta.energy) bits.push(`${audioMeta.energy}-energy pacing`);
+            if (bits.length) parts.push(bits.join(", "));
+        }
+
         // director's note last — most specific intent
         const note = director?.value?.trim();
         if (note) parts.push(note);
@@ -590,6 +598,309 @@
             userEditedPrompt = false;
             renderReadout();
             readout?.focus();
+        });
+    }
+
+    /* ---------- AI PROMPT ENHANCER ----------
+       sends the current readout to /api/enhance (Claude rewrites it as a
+       pro-grade cinematography prompt) and replaces the readout in place.   */
+    const enhanceBtn = document.getElementById("readoutEnhance");
+    if (enhanceBtn) {
+        enhanceBtn.addEventListener("click", async () => {
+            const current = (readout?.textContent || "").trim();
+            if (!current) {
+                enhanceBtn.textContent = "// no prompt to enhance";
+                setTimeout(() => { enhanceBtn.textContent = "✦ enhance"; }, 1800);
+                return;
+            }
+            const original = enhanceBtn.textContent;
+            enhanceBtn.disabled = true;
+            enhanceBtn.textContent = "✦ enhancing…";
+            try {
+                const r = await fetch("/api/enhance", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ prompt: current, page: PAGE || "video" }),
+                });
+                const data = await r.json();
+                if (!r.ok || !data.enhanced) {
+                    enhanceBtn.textContent = data.error ? `// ${data.error.slice(0, 30)}` : "// enhance failed";
+                    setTimeout(() => { enhanceBtn.textContent = original; }, 2400);
+                    return;
+                }
+                // replace the readout, treat as user-edited so chip changes don't clobber
+                if (readout) readout.textContent = data.enhanced.trim();
+                userEditedPrompt = true;
+                syncReadoutChrome();
+                enhanceBtn.textContent = "✦ enhanced";
+                setTimeout(() => { enhanceBtn.textContent = original; }, 1600);
+            } catch (err) {
+                enhanceBtn.textContent = `// ${err.message?.slice(0, 30) || "network err"}`;
+                setTimeout(() => { enhanceBtn.textContent = original; }, 2400);
+            } finally {
+                enhanceBtn.disabled = false;
+            }
+        });
+    }
+
+    /* ---------- PRESETS ----------
+       save chip combinations as named presets, recall with one click.
+       lives on the Image and Video pages.                                  */
+    const presetBar  = document.getElementById("presetBar");
+    const presetList = document.getElementById("presetList");
+    const presetSave = document.getElementById("presetSave");
+
+    if (presetBar && (PAGE === "image" || PAGE === "video")) {
+        const renderPresets = (presets) => {
+            const here = (presets || []).filter((p) => p.page === PAGE);
+            if (!here.length) {
+                presetList.innerHTML = '<span class="preset-empty">— none saved yet —</span>';
+                return;
+            }
+            presetList.innerHTML = here.map((p) => `
+                <span class="preset-chip" data-preset-id="${p.id}" title="${(p.director || "").slice(0, 80)}">
+                    <button class="preset-apply" type="button">${escapeAttr(p.name)}</button>
+                    <button class="preset-remove" type="button" aria-label="Delete preset">×</button>
+                </span>`).join("");
+        };
+
+        const escapeAttr = (s) => String(s || "")
+            .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;");
+
+        const loadPresets = () => {
+            fetch("/api/presets")
+                .then((r) => r.ok ? r.json() : null)
+                .then((d) => renderPresets(d?.presets))
+                .catch(() => renderPresets([]));
+        };
+
+        const applyPreset = (presetId, presets) => {
+            const p = (presets || []).find((x) => x.id === presetId);
+            if (!p) return;
+            // clear current selections
+            Object.keys(selections).forEach((k) => delete selections[k]);
+            document.querySelectorAll(".chip.is-selected").forEach((c) => c.classList.remove("is-selected"));
+            // apply preset's selections
+            for (const [group, val] of Object.entries(p.selections || {})) {
+                selections[group] = val;
+                const chip = document.querySelector(`.chip-grid[data-group="${group}"] .chip[data-value="${val}"]`);
+                if (chip) chip.classList.add("is-selected");
+            }
+            // restore director's note
+            if (director) director.value = p.director || "";
+            // re-enable auto-assembly for the new state
+            userEditedPrompt = false;
+            renderReadout();
+        };
+
+        presetBar.addEventListener("click", async (e) => {
+            const removeBtn = e.target.closest(".preset-remove");
+            if (removeBtn) {
+                const chip = removeBtn.closest(".preset-chip");
+                const id = chip?.dataset.presetId;
+                if (!id) return;
+                if (!confirm("Delete this preset?")) return;
+                try {
+                    const r = await fetch(`/api/presets?id=${encodeURIComponent(id)}`, { method: "DELETE" });
+                    const d = await r.json();
+                    renderPresets(d?.presets);
+                } catch (err) {}
+                return;
+            }
+            const applyBtn = e.target.closest(".preset-apply");
+            if (applyBtn) {
+                const id = applyBtn.closest(".preset-chip")?.dataset.presetId;
+                if (!id) return;
+                // fetch fresh list so we always apply the current saved data
+                try {
+                    const r = await fetch("/api/presets");
+                    const d = await r.json();
+                    applyPreset(id, d?.presets);
+                } catch (err) {}
+            }
+        });
+
+        if (presetSave) {
+            presetSave.addEventListener("click", async () => {
+                if (!Object.keys(selections).length && !director?.value?.trim()) {
+                    alert("Pick some chips or write a director note before saving.");
+                    return;
+                }
+                const name = prompt("Name this preset:");
+                if (!name || !name.trim()) return;
+                presetSave.disabled = true;
+                const original = presetSave.textContent;
+                presetSave.textContent = "saving…";
+                try {
+                    const r = await fetch("/api/presets", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            name:       name.trim(),
+                            page:       PAGE,
+                            selections: { ...selections },
+                            director:   director?.value || "",
+                        }),
+                    });
+                    const d = await r.json();
+                    if (!r.ok) {
+                        alert("Save failed: " + (d.error || r.status));
+                    } else {
+                        renderPresets(d.presets);
+                    }
+                } catch (err) {
+                    alert("Save failed: " + err.message);
+                } finally {
+                    presetSave.disabled = false;
+                    presetSave.textContent = original;
+                }
+            });
+        }
+
+        loadPresets();
+    }
+
+    /* ---------- AUDIO SYNC ----------
+       client-side BPM + energy detection. injects "synced to {bpm} BPM
+       ({energy} energy)" into the prompt as a contextual fragment.        */
+    let audioMeta = null;  // { bpm, durationSec, energy }
+
+    const audioInput   = document.getElementById("audioUpload");
+    const audioSub     = document.getElementById("audioSub");
+    const audioReadout = document.getElementById("audioReadout");
+    const audioBpmEl   = document.getElementById("audioBpm");
+    const audioDurEl   = document.getElementById("audioDur");
+    const audioEnEl    = document.getElementById("audioEnergy");
+    const audioClear   = document.getElementById("audioClear");
+
+    const detectBPM = async (file) => {
+        const Ctx = window.AudioContext || window.webkitAudioContext;
+        if (!Ctx) throw new Error("Web Audio API not supported");
+        const ctx = new Ctx();
+        const arrayBuf = await file.arrayBuffer();
+        const audioBuf = await ctx.decodeAudioData(arrayBuf);
+        const ch       = audioBuf.getChannelData(0);
+        const sr       = audioBuf.sampleRate;
+
+        // energy envelope over ~23ms windows
+        const win = Math.floor(sr * 0.023);
+        const energy = [];
+        for (let i = 0; i < ch.length; i += win) {
+            let s = 0;
+            const end = Math.min(i + win, ch.length);
+            for (let j = i; j < end; j++) s += ch[j] * ch[j];
+            energy.push(s / (end - i));
+        }
+
+        const avg = energy.reduce((a, b) => a + b, 0) / energy.length;
+        const max = Math.max(...energy);
+        const threshold = avg + (max - avg) * 0.35;
+
+        // find peaks
+        const peakTimes = [];
+        for (let i = 1; i < energy.length - 1; i++) {
+            if (energy[i] > threshold && energy[i] > energy[i - 1] && energy[i] > energy[i + 1]) {
+                peakTimes.push((i * win) / sr);
+            }
+        }
+
+        // gather BPM candidates from pairwise gaps (60–200 BPM range)
+        const candidates = [];
+        for (let i = 0; i < peakTimes.length - 1; i++) {
+            for (let j = i + 1; j < Math.min(i + 6, peakTimes.length); j++) {
+                const gap = peakTimes[j] - peakTimes[i];
+                if (gap < 0.3 || gap > 2.0) continue;
+                let bpm = 60 / gap;
+                while (bpm < 60)  bpm *= 2;
+                while (bpm > 200) bpm /= 2;
+                candidates.push(bpm);
+            }
+        }
+
+        if (!candidates.length) {
+            try { ctx.close(); } catch (e) {}
+            return { bpm: null, durationSec: audioBuf.duration, energy: classifyEnergy(avg, max) };
+        }
+
+        // histogram-bucket the candidates (2-BPM bins) and pick the densest bucket
+        const buckets = new Map();
+        for (const c of candidates) {
+            const key = Math.round(c / 2) * 2;
+            buckets.set(key, (buckets.get(key) || 0) + 1);
+        }
+        let bestKey = 120, bestCount = 0;
+        for (const [k, v] of buckets) {
+            if (v > bestCount) { bestCount = v; bestKey = k; }
+        }
+        try { ctx.close(); } catch (e) {}
+        return { bpm: bestKey, durationSec: audioBuf.duration, energy: classifyEnergy(avg, max) };
+    };
+
+    const classifyEnergy = (avg, max) => {
+        // crude heuristic — most rap masters sit in a narrow loudness band
+        const ratio = max > 0 ? avg / max : 0;
+        if (ratio > 0.25) return "high";
+        if (ratio > 0.10) return "medium";
+        return "low";
+    };
+
+    const fmtDuration = (s) => {
+        if (!s || isNaN(s)) return "—";
+        const m = Math.floor(s / 60);
+        const sec = Math.round(s % 60);
+        return `${m}:${String(sec).padStart(2, "0")}`;
+    };
+
+    if (audioInput) {
+        audioInput.addEventListener("change", async () => {
+            const f = audioInput.files?.[0];
+            if (!f) return;
+            if (f.size > 8 * 1024 * 1024) {
+                if (audioSub) audioSub.textContent = "file too large (>8MB)";
+                return;
+            }
+            if (audioSub) audioSub.textContent = `analyzing: ${f.name}`;
+            try {
+                const meta = await detectBPM(f);
+                audioMeta = meta;
+                if (audioBpmEl)   audioBpmEl.textContent   = meta.bpm ? String(meta.bpm) : "?";
+                if (audioDurEl)   audioDurEl.textContent   = fmtDuration(meta.durationSec);
+                if (audioEnEl)    audioEnEl.textContent    = meta.energy || "?";
+                if (audioSub)     audioSub.textContent     = `loaded: ${f.name}`;
+                if (audioReadout) audioReadout.hidden      = false;
+                renderReadout();
+            } catch (err) {
+                if (audioSub) audioSub.textContent = "could not analyze (" + (err.message?.slice(0, 30) || "err") + ")";
+            }
+        });
+
+        // wire the dropzone for drag-and-drop too
+        const audioDrop = audioInput.closest(".dropzone");
+        if (audioDrop) {
+            ["dragenter", "dragover"].forEach((ev) =>
+                audioDrop.addEventListener(ev, (e) => { e.preventDefault(); audioDrop.classList.add("is-drag"); })
+            );
+            ["dragleave", "drop"].forEach((ev) =>
+                audioDrop.addEventListener(ev, (e) => { e.preventDefault(); audioDrop.classList.remove("is-drag"); })
+            );
+            audioDrop.addEventListener("drop", (e) => {
+                const f = e.dataTransfer?.files?.[0];
+                if (f && f.type.startsWith("audio/")) {
+                    audioInput.files = e.dataTransfer.files;
+                    audioInput.dispatchEvent(new Event("change"));
+                }
+            });
+        }
+    }
+
+    if (audioClear) {
+        audioClear.addEventListener("click", () => {
+            audioMeta = null;
+            if (audioInput)   audioInput.value         = "";
+            if (audioReadout) audioReadout.hidden      = true;
+            if (audioSub)     audioSub.textContent     = "no audio loaded";
+            renderReadout();
         });
     }
 
