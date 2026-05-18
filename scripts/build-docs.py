@@ -38,6 +38,7 @@ PAGE_FILES = {
     "subscription": PAGES / "Subscription.cshtml",
     "login":        PAGES / "Login.cshtml",
     "lab":          PAGES / "Lab.cshtml",
+    "history":      PAGES / "History.cshtml",
 }
 
 
@@ -86,6 +87,7 @@ COMMON_REPLACEMENTS = [
     ('asp-page="/Dashboard"',    'href="dashboard.html"'),
     ('asp-page="/Subscription"', 'href="subscription.html"'),
     ('asp-page="/Lab"',          'href="lab.html"'),
+    ('asp-page="/History"',      'href="history.html"'),
     ('~/favicon.svg',     'favicon.svg'),
     ('~/css/site.css',    'css/site.css'),
     ('~/js/site.js',      'js/site.js'),

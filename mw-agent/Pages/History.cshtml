@@ -1,0 +1,45 @@
+@page
+@model HistoryModel
+@{
+    ViewData["Title"] = "HISTORY";
+}
+
+<section class="gen history">
+    <div class="gen-head">
+        <div class="gen-crumbs">/ <a asp-page="/Index">HOME</a> / <span class="hl">HISTORY</span></div>
+        <h1 class="gen-title glitch" data-text="SIGNAL_ARCHIVE">SIGNAL_ARCHIVE</h1>
+        <p class="gen-lede">every render you've made, ordered newest first. click any to view, re-render, or download.</p>
+
+        <div class="history-controls">
+            <div class="history-filters" role="tablist">
+                <button class="history-filter is-active" type="button" data-filter="all">all</button>
+                <button class="history-filter"            type="button" data-filter="image">image</button>
+                <button class="history-filter"            type="button" data-filter="video">video</button>
+            </div>
+            <div class="history-meta">
+                <span class="history-count" id="historyCount">—</span>
+                <button class="history-clear-all" type="button" id="historyClearAll">clear all</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="history-grid" id="historyGrid">
+        <div class="history-empty">— loading… —</div>
+    </div>
+</section>
+
+<!-- viewer modal opens when you click a history card -->
+<div class="hist-viewer" id="histViewer" hidden>
+    <div class="hist-viewer-overlay" data-close-hist></div>
+    <div class="hist-viewer-card">
+        <button class="hist-viewer-close" type="button" data-close-hist aria-label="Close">×</button>
+        <div class="hist-viewer-media" id="histViewerMedia"></div>
+        <div class="hist-viewer-meta" id="histViewerMeta"></div>
+        <div class="hist-viewer-prompt" id="histViewerPrompt"></div>
+        <div class="hist-viewer-actions">
+            <a    class="hist-viewer-btn" id="histViewerDownload" download>download</a>
+            <button class="hist-viewer-btn hist-viewer-btn--ghost" id="histViewerRerender" type="button">re-render this prompt</button>
+            <button class="hist-viewer-btn hist-viewer-btn--danger" id="histViewerDelete" type="button">delete</button>
+        </div>
+    </div>
+</div>

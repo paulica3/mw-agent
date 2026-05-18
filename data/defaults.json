@@ -1,9 +1,28 @@
 {
+  "version": 2,
   "intros": {
     "image": "Album cover artwork or music video still frame for a contemporary new-wave / underground rap artist (rage scene, opium aesthetic, hyperpop-adjacent). Magazine-quality professional photography, hyper-detailed textures, dramatic cinematic composition, color-graded master file, 4K master.",
     "video": "Cinematic music video footage for a contemporary new-wave / underground rap artist (rage scene, opium aesthetic, hyperpop-adjacent). Hyper-detailed professional cinematography, color-graded final cut, broadcast-quality master suitable for full music video use."
   },
   "categories": [
+    {
+      "id": "genre",
+      "label": "GENRE",
+      "hint": "musical scene the visual serves",
+      "showOn": ["image", "video"],
+      "chips": [
+        { "value": "trap",         "label": "TRAP",          "fragment": "trap aesthetic, Atlanta-scene visual lineage, 808-heavy energy, codeine-haze atmosphere, Future / Migos / Travis Scott era influence" },
+        { "value": "drill",        "label": "DRILL",         "fragment": "drill scene aesthetic, Chicago / UK drill street realism, balaclava-clad anonymous figures, harsh sodium streetlights, gritty CCTV-grade authenticity" },
+        { "value": "rage",         "label": "RAGE",          "fragment": "rage scene aesthetic, Yeat / Ken Carson era energy, mosh-pit kinetic chaos, distorted spikey 808s implied, anime-leaning visual language" },
+        { "value": "plugg",        "label": "PLUGG",         "fragment": "plugg / pluggnb aesthetic, soft melodic summer-night vibe, pastel sky palette, MexikoDro / Cashcache lineage, dreamy chill atmosphere" },
+        { "value": "opium",        "label": "OPIUM_LBL",     "fragment": "Opium label / Whole Lotta Red era aesthetic, gothic vampire fashion, derelict luxury interiors, Carti / Destroy Lonely visual world, low-key candlelight" },
+        { "value": "hyperpop",     "label": "HYPERPOP",      "fragment": "hyperpop visual aesthetic, glitched-out maximalism, hot pink + electric blue palette, Y2K Bratz-doll energy, Charli xcx / SOPHIE / 100 gecs influence" },
+        { "value": "boom_bap",     "label": "BOOM_BAP",      "fragment": "boom bap classic 90s hip-hop aesthetic, NYC streetwise documentary feel, Wu-Tang / Mobb Deep era, project hallways and rooftops, gritty 35mm grain" },
+        { "value": "cloud_rap",    "label": "CLOUD_RAP",     "fragment": "cloud rap ethereal aesthetic, hazy washed-out dreamy colors, ASAP Rocky LiveLoveAsap / Lil B early era influence, fog-machine atmosphere" },
+        { "value": "jersey_club",  "label": "JERSEY_CLUB",   "fragment": "Jersey club aesthetic, vibrant nightclub energy, neon strobe lighting, kick-drum pulse implied, fast-paced edit feel" },
+        { "value": "emo_rap",      "label": "EMO_RAP",       "fragment": "emo rap aesthetic, melancholic introspective vibes, Lil Peep / XXXTentacion era influence, dark dreampop palette, vulnerable intimacy" }
+      ]
+    },
     {
       "id": "theme",
       "label": "THEME",
@@ -16,7 +35,7 @@
         { "value": "dreamlike",    "label": "DREAMLIKE",    "fragment": "soft pastel dreamscape, hazy ethereal diffusion, gauzy bloom lighting, cotton-candy cloud palette, Sofia Coppola / Petra Collins influence" },
         { "value": "retro",        "label": "RETRO",        "fragment": "vintage 90s VHS aesthetic, analog film grain, warm faded tones, CRT scanlines, chromatic aberration, found-footage warmth" },
         { "value": "classic",      "label": "CLASSIC",      "fragment": "timeless cinematic composition, deep chiaroscuro shadows, prestige film grade, anamorphic spherical lens, Roger Deakins / Greig Fraser influence" },
-        { "value": "rage",         "label": "RAGE_ANIME",   "fragment": "anime-inspired rage aesthetic with hard cell-shading and dramatic speed lines, intense emotional close-ups, manga panel composition, mosh-pit kinetic energy" },
+        { "value": "rage_anime",   "label": "RAGE_ANIME",   "fragment": "anime-inspired rage aesthetic with hard cell-shading and dramatic speed lines, intense emotional close-ups, manga panel composition, mosh-pit kinetic energy" },
         { "value": "opium",        "label": "OPIUM",        "fragment": "opium-core gothic dark aesthetic, religious iconography, vampire-pale skin tones, derelict-luxury interiors, low-key candlelight, Carti / Destroy Lonely visual world" },
         { "value": "cyberpunk",    "label": "CYBERPUNK",    "fragment": "cyberpunk neon-drenched megacity, rain-slick streets reflecting holographic billboards, augmented bodies and chrome implants, dense layered urban density" }
       ]
@@ -50,6 +69,54 @@
         { "value": "confident",    "label": "CONFIDENT",     "fragment": "swagger confidence, slow-motion power walk, dripping in chains and designer pieces, cold intimidating stare, untouchable energy" },
         { "value": "hypnotic",     "label": "HYPNOTIC",      "fragment": "hypnotic trance-like mood, rhythmic visual loops, repetitive symmetric motion, narcotic dream-haze atmosphere" },
         { "value": "menacing",     "label": "MENACING",      "fragment": "menacing predatory vibe, low-angle hero shots, shadows pooling around the figure, weight-of-the-world stillness" }
+      ]
+    },
+    {
+      "id": "location",
+      "label": "LOCATION",
+      "hint": "where it's set",
+      "showOn": ["image", "video"],
+      "chips": [
+        { "value": "street",       "label": "STREET",        "fragment": "gritty urban street setting, sodium streetlamp orange wash, late-night corner-store ambient glow, distant siren atmosphere" },
+        { "value": "mansion",      "label": "MANSION",       "fragment": "luxury mansion interior, marble surfaces and gold accents, designer furniture, derelict-luxury contrast with crumbling grandeur" },
+        { "value": "warehouse",    "label": "WAREHOUSE",     "fragment": "abandoned warehouse interior, industrial concrete and rebar, single hanging incandescent bulb, mosh-pit potential, dust hanging in the air" },
+        { "value": "studio",       "label": "STUDIO",        "fragment": "recording studio setting, illuminated mixing console, soundproofing foam walls, monitor speakers, behind-the-glass producer view" },
+        { "value": "rooftop",      "label": "ROOFTOP",       "fragment": "city rooftop at night, full skyline backdrop, distant traffic lights twinkling, elevation and openness, wind-blown energy" },
+        { "value": "car_interior", "label": "CAR_INTERIOR",  "fragment": "interior of a luxury car (G-Wagon or vintage Cadillac), leather seats, dashboard glow on faces, late-night drive energy, rear-view mirror dangling" },
+        { "value": "nightclub",    "label": "NIGHTCLUB",     "fragment": "nightclub interior, strobe lighting cutting through fog machine haze, crowd silhouettes, DJ booth glow, claustrophobic intimacy" },
+        { "value": "cathedral",    "label": "CATHEDRAL",     "fragment": "gothic cathedral interior, vaulted stone ceilings, stained-glass colored light spilling onto the floor, religious silence, vast scale dwarfing the subject" },
+        { "value": "forest",       "label": "FOREST_NIGHT",  "fragment": "dark forest at night, moonlight filtering through tree silhouettes, ground fog at ankle level, mysterious folk-horror atmosphere" },
+        { "value": "desert",       "label": "DESERT",        "fragment": "vast desert landscape, golden-hour or moonlit dunes, lone figure dwarfed by emptiness, Joshua Tree / Mojave influence" }
+      ]
+    },
+    {
+      "id": "time",
+      "label": "TIME",
+      "hint": "time of day",
+      "showOn": ["image", "video"],
+      "chips": [
+        { "value": "golden_hour",  "label": "GOLDEN_HOUR",   "fragment": "golden hour lighting, warm 3000K amber sun low in the sky, long shadows raking across the subject, magic-hour atmosphere" },
+        { "value": "blue_hour",    "label": "BLUE_HOUR",     "fragment": "blue hour twilight, deep cyan sky with rim of magenta at the horizon, cold ambient light, post-sunset stillness" },
+        { "value": "harsh_noon",   "label": "HARSH_NOON",    "fragment": "harsh midday sun, hard top-down 5600K lighting, dark short shadows under the eyes, sun-bleached colors, Larry Clark / Harmony Korine energy" },
+        { "value": "deep_night",   "label": "DEEP_NIGHT",    "fragment": "deep middle-of-the-night, available light only from practicals — neon signs, streetlamps, screen glow, mystery and shadow" },
+        { "value": "dawn",         "label": "DAWN",          "fragment": "dawn breaking, soft pink and lilac sky, first cool light, fresh-start energy, dew on surfaces" },
+        { "value": "overcast",     "label": "OVERCAST",      "fragment": "overcast diffused daylight, soft shadowless flat lighting, cool gray palette, melancholic loneliness mood" }
+      ]
+    },
+    {
+      "id": "deliverable",
+      "label": "DELIVERABLE",
+      "hint": "what the image is for",
+      "showOn": ["image"],
+      "chips": [
+        { "value": "album_cover",     "label": "ALBUM_COVER",      "fragment": "designed as a 1:1 square album cover, iconic centered composition with breathing room for artist-name and title typography overlay, memorable at thumbnail size, cohesive single dominant image" },
+        { "value": "single_cover",    "label": "SINGLE_COVER",     "fragment": "single release artwork, focal-point composition optimized for streaming thumbnail readability at small sizes, bold contrast, instant recognizability" },
+        { "value": "mixtape_cover",   "label": "MIXTAPE_COVER",    "fragment": "mixtape cover artwork, gritty raw DIY photoshopped-collage aesthetic, classic DatPiff / LiveMixtapes era lineage, hand-edited rough energy" },
+        { "value": "promo_shot",      "label": "PROMO_PORTRAIT",   "fragment": "press / promotional artist portrait, editorial magazine-cover composition, deliberate styling, professional fashion-photography polish" },
+        { "value": "lyric_card",      "label": "LYRIC_CARD",       "fragment": "lyric-quote card composition, deliberate empty space in upper or lower third for text overlay, instagram-feed optimized 1:1 or 4:5 framing" },
+        { "value": "merch_design",    "label": "MERCH_DESIGN",     "fragment": "merch graphic design composition, bold high-contrast iconic image suitable for t-shirt / hoodie / tour-poster print, screenprint-friendly simplicity" },
+        { "value": "thumbnail",       "label": "YT_THUMBNAIL",     "fragment": "YouTube thumbnail composition, high-contrast face-forward framing, exaggerated expressions, attention-grabbing in a crowded feed, click-worthy energy" },
+        { "value": "behind_scenes",   "label": "BEHIND_SCENES",    "fragment": "behind-the-scenes candid documentary shot, unposed natural moment captured on-set, intimate authenticity, 35mm grain" }
       ]
     },
     {

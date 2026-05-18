@@ -1408,13 +1408,27 @@
                     modalDL.removeAttribute("href");
                     modalDL.removeAttribute("download");
                     setPane("success");
-                    // fire-and-forget: record this successful render in stats.
+                    // fire-and-forget: record this successful render in stats + history.
                     // backend dedups by taskId so repeats are harmless.
                     fetch("/api/stats", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({ type: page, taskId: taskInfo.id }),
-                    }).catch(() => { /* offline / kv down — fine, just skip */ });
+                    }).catch(() => {});
+                    fetch("/api/history", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            page,
+                            prompt:      buildPrompt(),
+                            mediaUrl,
+                            model:       page === "image" ? "flux-pro-1.1-ultra" : (selections.quality || "standard"),
+                            quality:     selections.quality || "standard",
+                            duration:    selections.duration || "5",
+                            aspectRatio: selections.size || "1:1",
+                            taskId:      taskInfo.id,
+                        }),
+                    }).catch(() => {});
                     return;
                 }
                 if (data.status === "failed") {
@@ -1884,6 +1898,171 @@
                 location.replace("/login");
             });
         }
+    }
+
+    /* ---------- URL-PARAM PROMPT PREFILL ----------
+       /image or /video can accept ?prompt=<encoded> to pre-fill the readout
+       (used by the History page's "re-render" button).                     */
+    if ((PAGE === "image" || PAGE === "video") && readout) {
+        const urlPrompt = new URLSearchParams(location.search).get("prompt");
+        if (urlPrompt) {
+            readout.textContent = urlPrompt;
+            userEditedPrompt = true;
+            syncReadoutChrome();
+        }
+    }
+
+    /* ---------- HISTORY PAGE ----------
+       grid of past renders. click any card → viewer modal with re-render. */
+    if (PAGE === "history") {
+        const grid       = document.getElementById("historyGrid");
+        const countEl    = document.getElementById("historyCount");
+        const clearAllBt = document.getElementById("historyClearAll");
+        const viewer     = document.getElementById("histViewer");
+        const vMedia     = document.getElementById("histViewerMedia");
+        const vMeta      = document.getElementById("histViewerMeta");
+        const vPrompt    = document.getElementById("histViewerPrompt");
+        const vDownload  = document.getElementById("histViewerDownload");
+        const vRerender  = document.getElementById("histViewerRerender");
+        const vDelete    = document.getElementById("histViewerDelete");
+
+        let allEntries  = [];
+        let currentFilter = "all";
+        let currentEntry  = null;
+
+        const escAttr = (s) => String(s || "")
+            .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+        const fmtDate = (iso) => {
+            if (!iso) return "—";
+            const d = new Date(iso);
+            if (isNaN(+d)) return iso.slice(0, 10);
+            const months = ["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"];
+            return `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+        };
+
+        const renderGrid = () => {
+            const filtered = currentFilter === "all"
+                ? allEntries
+                : allEntries.filter((e) => e.page === currentFilter);
+
+            if (countEl) countEl.textContent = `${filtered.length} entr${filtered.length === 1 ? "y" : "ies"}`;
+
+            if (!filtered.length) {
+                grid.innerHTML = `<div class="history-empty">— no renders yet · go make something —</div>`;
+                return;
+            }
+
+            grid.innerHTML = filtered.map((e) => {
+                const isVideo = e.page === "video";
+                const media = isVideo
+                    ? `<video src="${escAttr(e.mediaUrl)}" muted loop playsinline preload="metadata"></video>`
+                    : `<img src="${escAttr(e.mediaUrl)}" alt="" loading="lazy"/>`;
+                const badge = isVideo
+                    ? `<span class="hist-card-badge hist-card-badge--video">VIDEO · ${escAttr(e.quality || "std")}</span>`
+                    : `<span class="hist-card-badge hist-card-badge--image">IMAGE · ${escAttr(e.aspectRatio || "1:1")}</span>`;
+                return `
+                <div class="hist-card" data-id="${escAttr(e.id)}">
+                    <div class="hist-card-media">${media}${badge}</div>
+                    <div class="hist-card-body">
+                        <div class="hist-card-prompt">${escAttr((e.prompt || "").slice(0, 140))}${(e.prompt || "").length > 140 ? "…" : ""}</div>
+                        <div class="hist-card-date">${fmtDate(e.createdAt)}</div>
+                    </div>
+                </div>`;
+            }).join("");
+
+            // hover-to-play for video thumbnails
+            grid.querySelectorAll(".hist-card video").forEach((v) => {
+                v.addEventListener("mouseenter", () => v.play().catch(() => {}));
+                v.addEventListener("mouseleave", () => { v.pause(); v.currentTime = 0; });
+            });
+        };
+
+        const openViewer = (entry) => {
+            currentEntry = entry;
+            const isVideo = entry.page === "video";
+            vMedia.innerHTML = isVideo
+                ? `<video src="${escAttr(entry.mediaUrl)}" controls autoplay loop playsinline></video>`
+                : `<img src="${escAttr(entry.mediaUrl)}" alt=""/>`;
+            const metaParts = [
+                entry.page?.toUpperCase(),
+                entry.model || "",
+                isVideo ? `${entry.duration || "?"}s · ${entry.quality || "std"}` : (entry.aspectRatio || "?"),
+                fmtDate(entry.createdAt),
+            ].filter(Boolean);
+            vMeta.innerHTML = metaParts.map((p) => `<span>${escAttr(p)}</span>`).join("<span class='hist-meta-sep'>·</span>");
+            vPrompt.textContent = entry.prompt || "(no prompt)";
+            vDownload.href = entry.mediaUrl || "#";
+            vDownload.download = `xperiment_${entry.id}.${isVideo ? "mp4" : "png"}`;
+            viewer.hidden = false;
+        };
+
+        const closeViewer = () => {
+            viewer.hidden = true;
+            vMedia.innerHTML = "";  // stop any video playback
+            currentEntry = null;
+        };
+
+        viewer?.addEventListener("click", (e) => {
+            if (e.target.closest("[data-close-hist]")) closeViewer();
+        });
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape" && viewer && !viewer.hidden) closeViewer();
+        });
+
+        vRerender?.addEventListener("click", () => {
+            if (!currentEntry) return;
+            const dest = currentEntry.page === "image" ? "/image" : "/video";
+            location.href = `${dest}?prompt=${encodeURIComponent(currentEntry.prompt || "")}`;
+        });
+
+        vDelete?.addEventListener("click", async () => {
+            if (!currentEntry) return;
+            if (!confirm("Delete this entry from history?")) return;
+            try {
+                const r = await fetch(`/api/history?id=${encodeURIComponent(currentEntry.id)}`, { method: "DELETE" });
+                const d = await r.json();
+                allEntries = d.history || [];
+                closeViewer();
+                renderGrid();
+            } catch (err) { alert("Delete failed: " + err.message); }
+        });
+
+        grid?.addEventListener("click", (e) => {
+            const card = e.target.closest(".hist-card");
+            if (!card) return;
+            const entry = allEntries.find((x) => x.id === card.dataset.id);
+            if (entry) openViewer(entry);
+        });
+
+        // filter buttons
+        document.querySelectorAll(".history-filter").forEach((btn) => {
+            btn.addEventListener("click", () => {
+                document.querySelectorAll(".history-filter").forEach((b) => b.classList.remove("is-active"));
+                btn.classList.add("is-active");
+                currentFilter = btn.dataset.filter;
+                renderGrid();
+            });
+        });
+
+        clearAllBt?.addEventListener("click", async () => {
+            if (!confirm("Wipe the entire render history? This cannot be undone.")) return;
+            try {
+                const r = await fetch("/api/history?all=1", { method: "DELETE" });
+                if (r.ok) { allEntries = []; renderGrid(); }
+            } catch (err) { alert("Clear failed: " + err.message); }
+        });
+
+        // initial load
+        fetch("/api/history")
+            .then((r) => r.json())
+            .then((d) => {
+                allEntries = d.history || [];
+                renderGrid();
+            })
+            .catch(() => {
+                if (grid) grid.innerHTML = `<div class="history-empty">— could not load history —</div>`;
+            });
     }
 
     /* ---------- EASTER EGG: RS ⨯ MD ----------

@@ -132,11 +132,31 @@ class handler(BaseHTTPRequestHandler):
         if not check_request(self):
             return
         try:
-            stored = _kv_get(STORE_KEY)
-            if stored:
-                self._send(200, json.loads(stored))
+            stored_raw = _kv_get(STORE_KEY)
+            if not stored_raw:
+                self._send(200, _load_defaults())
                 return
-            self._send(200, _load_defaults())
+
+            stored   = json.loads(stored_raw)
+            defaults = _load_defaults()
+
+            # one-time migration: when defaults.json bumps its version, merge any
+            # categories the user has never seen into their existing config.
+            # the user can still delete merged categories afterwards.
+            seen_version    = int(stored.get("_defaultsVersion") or 0)
+            current_version = int(defaults.get("version") or 0)
+            if current_version > seen_version:
+                stored_ids = {c.get("id") for c in (stored.get("categories") or [])}
+                for cat in defaults.get("categories", []):
+                    if cat.get("id") not in stored_ids:
+                        stored.setdefault("categories", []).append(cat)
+                # intros also get topped up only if missing entirely
+                if not stored.get("intros"):
+                    stored["intros"] = defaults.get("intros", {})
+                stored["_defaultsVersion"] = current_version
+                _kv_set(STORE_KEY, json.dumps(stored))
+
+            self._send(200, stored)
         except Exception as e:  # noqa: BLE001
             self._send(500, {"error": str(e)})
 
