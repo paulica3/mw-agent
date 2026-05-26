@@ -49,6 +49,101 @@ button { font: inherit; color: inherit; background: transparent; border: 0; curs
 ::selection { background: var(--ink); color: var(--bg); }
 
 /* =============================================================
+   SCROLLBARS — themed to match each mood
+   applies to the document scroll AND every inner scrolling container
+   (modals, dashboard panels, lab JSON viewers, dev HUD, readout, etc.)
+
+   firefox: only `scrollbar-width` + `scrollbar-color` exist — applied via
+   `*` so internal containers pick them up too (these properties aren't
+   inherited).
+   webkit (chrome/safari/edge): the ::-webkit-scrollbar pseudo-element tree
+   gives us full control — width, colors, rounding, hover glow.
+   ============================================================= */
+
+* {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.18) transparent;
+}
+
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+    border-left: 1px solid rgba(255,255,255,0.03);
+}
+::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.16);
+    border: 1px solid rgba(255,255,255,0.04);
+    transition: background-color 0.18s ease, box-shadow 0.18s ease;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-hot);
+    box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,0.4),
+        0 0 8px rgba(255,255,255,0.25);
+}
+::-webkit-scrollbar-thumb:active {
+    background: var(--ink);
+}
+::-webkit-scrollbar-corner { background: transparent; }
+
+/* ---- bloom: softer, warm, rounded ---- */
+[data-theme="bloom"] *,
+[data-theme="bloom"] {
+    scrollbar-color: rgba(193,154,107,0.55) rgba(255,255,255,0.25);
+}
+[data-theme="bloom"] ::-webkit-scrollbar-track {
+    background: rgba(255,255,255,0.25);
+    border-left: 0;
+    border-radius: 999px;
+    margin: 4px;
+}
+[data-theme="bloom"] ::-webkit-scrollbar-thumb {
+    background: rgba(193,154,107,0.55);
+    border: 1px solid rgba(193,154,107,0.25);
+    border-radius: 999px;
+}
+[data-theme="bloom"] ::-webkit-scrollbar-thumb:hover {
+    background: var(--accent);
+    box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,0.45),
+        0 0 8px rgba(193,154,107,0.4);
+}
+[data-theme="bloom"] ::-webkit-scrollbar-thumb:active {
+    background: #8a6a4a;
+}
+
+/* ---- void (dev): blood-red ---- */
+[data-theme="void"] *,
+[data-theme="void"] {
+    scrollbar-color: rgba(255,0,68,0.55) rgba(0,0,0,0.4);
+}
+[data-theme="void"] ::-webkit-scrollbar-track {
+    background: rgba(0,0,0,0.45);
+    border-left-color: rgba(255,0,68,0.08);
+}
+[data-theme="void"] ::-webkit-scrollbar-thumb {
+    background: rgba(255,0,68,0.4);
+    border: 1px solid rgba(255,0,68,0.15);
+}
+[data-theme="void"] ::-webkit-scrollbar-thumb:hover {
+    background: var(--accent);
+    box-shadow:
+        inset 0 0 0 1px rgba(255,80,100,0.6),
+        0 0 14px rgba(255,0,68,0.55);
+}
+[data-theme="void"] ::-webkit-scrollbar-thumb:active {
+    background: var(--accent-hot);
+}
+
+/* narrower scrollbars on small screens */
+@media (max-width: 600px) {
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+}
+
+/* =============================================================
    FULLSCREEN FX LAYERS
    ============================================================= */
 .fx-layer {
