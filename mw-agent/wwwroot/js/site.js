@@ -407,6 +407,8 @@
                            : document.body.classList.contains("page-image")        ? "image"
                            : document.body.classList.contains("page-video")        ? "video"
                            : document.body.classList.contains("page-subscription") ? "subscription"
+                           : document.body.classList.contains("page-history")      ? "history"
+                           : document.body.classList.contains("page-lab")          ? "lab"
                            : null;
 
     // fragments for the special hardcoded groups (color swatches, duration numerics, image size)
