@@ -1958,24 +1958,167 @@
             // ---- KV state viewers ----
             const renderJsonInto = (id, data) => {
                 const el = document.getElementById(id);
-                if (el) el.textContent = JSON.stringify(data, null, 2);
+                if (el) el.textContent = typeof data === "string" ? data : JSON.stringify(data, null, 2);
             };
-            const loadChips = () => {
-                renderJsonInto("labChipsJson", "loading…");
-                fetch("/api/chips")
-                    .then((r) => r.json()).then((d) => renderJsonInto("labChipsJson", d))
-                    .catch((e) => renderJsonInto("labChipsJson", { error: e.message }));
+            const makeLoader = (endpoint, jsonId) => () => {
+                renderJsonInto(jsonId, "loading…");
+                fetch(endpoint)
+                    .then((r) => r.json())
+                    .then((d) => renderJsonInto(jsonId, d))
+                    .catch((e) => renderJsonInto(jsonId, { error: e.message }));
             };
-            const loadStats = () => {
-                renderJsonInto("labStatsJson", "loading…");
-                fetch("/api/stats")
-                    .then((r) => r.json()).then((d) => renderJsonInto("labStatsJson", d))
-                    .catch((e) => renderJsonInto("labStatsJson", { error: e.message }));
+            const loadChips   = makeLoader("/api/chips",   "labChipsJson");
+            const loadStats   = makeLoader("/api/stats",   "labStatsJson");
+            const loadPresets = makeLoader("/api/presets", "labPresetsJson");
+            const loadHistory = makeLoader("/api/history", "labHistoryJson");
+            loadChips(); loadStats(); loadPresets(); loadHistory();
+            document.getElementById("labReloadChips")?.addEventListener("click",   loadChips);
+            document.getElementById("labReloadStats")?.addEventListener("click",   loadStats);
+            document.getElementById("labReloadPresets")?.addEventListener("click", loadPresets);
+            document.getElementById("labReloadHistory")?.addEventListener("click", loadHistory);
+
+            // ---- PROVIDER_STATUS ----
+            const renderProviders = (info) => {
+                const el = document.getElementById("labProviders");
+                if (!el) return;
+                if (!info || info.error) {
+                    el.innerHTML = `<div class="lab-empty">— ${info?.error || "unavailable"} —</div>`;
+                    return;
+                }
+                const dot = (ok) => `<span class="lab-dot ${ok ? "lab-dot--ok" : "lab-dot--err"}"></span>`;
+                const p = info.providers || {};
+                const rt = info.runtime || {};
+                el.innerHTML = `
+                    <div class="lab-rows">
+                        <div class="lab-row">${dot(p.kling?.configured)}<span>kling</span><span>${p.kling?.model || "—"}</span></div>
+                        <div class="lab-row">${dot(p.bfl?.configured)}<span>bfl (flux)</span><span>${p.bfl?.model || "—"}</span></div>
+                        <div class="lab-row">${dot(p.claude?.configured)}<span>claude</span><span>${p.claude?.model || "—"}</span></div>
+                        <div class="lab-row">${dot(p.kv?.configured)}<span>kv storage</span><span>${p.kv?.naming || "—"}</span></div>
+                        <div class="lab-row">${dot(p.auth?.configured)}<span>auth</span><span>user:${p.auth?.user_pw_set ? "✓" : "✗"} dev:${p.auth?.dev_pw_set ? "✓" : "✗"}</span></div>
+                    </div>
+                    <div class="lab-runtime">
+                        <span>python ${rt.python || "?"}</span>
+                        <span class="lab-runtime-sep">·</span>
+                        <span>${rt.vercel_env || "?"} (${rt.vercel_region || "?"})</span>
+                        <span class="lab-runtime-sep">·</span>
+                        <span>v${info.version}</span>
+                    </div>`;
             };
-            loadChips();
-            loadStats();
-            document.getElementById("labReloadChips")?.addEventListener("click", loadChips);
-            document.getElementById("labReloadStats")?.addEventListener("click", loadStats);
+            const loadInfo = () => {
+                fetch("/api/info").then((r) => r.json()).then(renderProviders).catch((e) => renderProviders({ error: e.message }));
+            };
+            loadInfo();
+            document.getElementById("labReloadInfo")?.addEventListener("click", loadInfo);
+
+            // ---- STORAGE_BROWSER ----
+            const renderStorage = () => {
+                const el = document.getElementById("labStorage");
+                if (!el) return;
+                try {
+                    const keys = Object.keys(localStorage).sort();
+                    if (!keys.length) {
+                        el.innerHTML = `<div class="lab-empty">— empty —</div>`;
+                        return;
+                    }
+                    el.innerHTML = keys.map((k) => {
+                        const v = localStorage.getItem(k) || "";
+                        const size = new Blob([v]).size;
+                        const sizeStr = size < 1024 ? `${size}B` : `${(size / 1024).toFixed(1)}KB`;
+                        const preview = v.slice(0, 80).replace(/</g, "&lt;");
+                        return `
+                        <div class="lab-storage-row" data-key="${k}">
+                            <div class="lab-storage-key">${k}</div>
+                            <div class="lab-storage-size">${sizeStr}</div>
+                            <div class="lab-storage-preview">${preview}${v.length > 80 ? "…" : ""}</div>
+                        </div>`;
+                    }).join("");
+                } catch (e) {
+                    el.innerHTML = `<div class="lab-empty">— ${e.message} —</div>`;
+                }
+            };
+            renderStorage();
+            document.getElementById("labReloadStorage")?.addEventListener("click", renderStorage);
+            // click a row to log the full value to the console
+            document.getElementById("labStorage")?.addEventListener("click", (e) => {
+                const row = e.target.closest(".lab-storage-row");
+                if (!row) return;
+                const k = row.dataset.key;
+                const v = localStorage.getItem(k);
+                console.log(`[lab] localStorage[${k}] =`, v);
+                row.classList.add("is-pulse");
+                setTimeout(() => row.classList.remove("is-pulse"), 600);
+            });
+
+            // ---- RECENT_RENDERS ----
+            const fmtDateShort = (iso) => {
+                if (!iso) return "—";
+                const d = new Date(iso);
+                if (isNaN(+d)) return "?";
+                return d.toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+            };
+            const renderRecent = (data) => {
+                const el = document.getElementById("labRecent");
+                if (!el) return;
+                const entries = (data?.history || []).slice(0, 8);
+                if (!entries.length) {
+                    el.innerHTML = `<div class="lab-empty">— no renders yet —</div>`;
+                    return;
+                }
+                el.innerHTML = entries.map((e) => {
+                    const isVid = e.page === "video";
+                    const detail = isVid ? `${e.duration || "?"}s · ${e.quality || "std"}` : (e.aspectRatio || "?");
+                    return `
+                    <div class="lab-recent-row">
+                        <span class="lab-recent-badge lab-recent-badge--${e.page}">${(e.page || "?").toUpperCase()}</span>
+                        <span class="lab-recent-detail">${detail}</span>
+                        <span class="lab-recent-model">${e.model || "?"}</span>
+                        <span class="lab-recent-prompt">${(e.prompt || "").slice(0, 70).replace(/</g, "&lt;")}${(e.prompt || "").length > 70 ? "…" : ""}</span>
+                        <span class="lab-recent-date">${fmtDateShort(e.createdAt)}</span>
+                    </div>`;
+                }).join("");
+            };
+            const loadRecent = () => {
+                renderRecent(null);
+                fetch("/api/history").then((r) => r.json()).then(renderRecent).catch(() => renderRecent(null));
+            };
+            loadRecent();
+            document.getElementById("labReloadRecent")?.addEventListener("click", loadRecent);
+
+            // ---- PROMPT_TESTER ----
+            const testerInput  = document.getElementById("labTesterInput");
+            const testerPage   = document.getElementById("labTesterPage");
+            const testerRun    = document.getElementById("labTesterRun");
+            const testerOut    = document.getElementById("labTesterOut");
+            testerRun?.addEventListener("click", async () => {
+                const prompt = (testerInput?.value || "").trim();
+                if (!prompt) { testerInput?.focus(); return; }
+                testerRun.disabled = true;
+                testerRun.textContent = "✦ enhancing…";
+                testerOut.hidden = false;
+                testerOut.innerHTML = `<div class="lab-tester-loading">claude is thinking…</div>`;
+                try {
+                    const t0 = performance.now();
+                    const r = await fetch("/api/enhance", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ prompt, page: testerPage?.value || "video" }),
+                    });
+                    const ms = Math.round(performance.now() - t0);
+                    const d = await r.json();
+                    if (!r.ok || !d.enhanced) {
+                        testerOut.innerHTML = `<div class="lab-tester-err">// ${d.error || ("status " + r.status)}</div>`;
+                    } else {
+                        testerOut.innerHTML = `
+                            <div class="lab-tester-meta">enhanced in ${ms}ms · ${d.enhanced.length} chars</div>
+                            <div class="lab-tester-result">${d.enhanced.replace(/</g, "&lt;")}</div>`;
+                    }
+                } catch (err) {
+                    testerOut.innerHTML = `<div class="lab-tester-err">// ${err.message}</div>`;
+                } finally {
+                    testerRun.disabled = false;
+                    testerRun.textContent = "✦ enhance";
+                }
+            });
 
             // ---- API health pings ----
             const pingRow = async (row) => {
@@ -2020,6 +2163,14 @@
                 try {
                     const r = await fetch("/api/chips", { method: "DELETE" });
                     if (r.ok) { showActionResult("// chips reset", "ok"); loadChips(); }
+                    else      { showActionResult(`// failed: ${r.status}`, "err"); }
+                } catch (e) { showActionResult(`// error: ${e.message}`, "err"); }
+            });
+            document.getElementById("labClearHistory")?.addEventListener("click", async () => {
+                if (!confirm("Wipe the entire render history? This cannot be undone.")) return;
+                try {
+                    const r = await fetch("/api/history?all=1", { method: "DELETE" });
+                    if (r.ok) { showActionResult("// history wiped", "ok"); loadHistory(); loadRecent(); }
                     else      { showActionResult(`// failed: ${r.status}`, "err"); }
                 } catch (e) { showActionResult(`// error: ${e.message}`, "err"); }
             });

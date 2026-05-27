@@ -16,6 +16,16 @@
 
     <div class="lab-grid" id="labContent" hidden>
 
+        <!-- PROVIDER STATUS -->
+        <div class="lab-panel gen-panel">
+            <div class="panel-bar">
+                <span class="panel-tag">◈</span>
+                <span class="panel-name">// PROVIDER_STATUS</span>
+                <button class="lab-btn lab-btn--small" id="labReloadInfo" type="button">refresh</button>
+            </div>
+            <div class="lab-providers" id="labProviders">loading…</div>
+        </div>
+
         <!-- API HEALTH -->
         <div class="lab-panel gen-panel">
             <div class="panel-bar">
@@ -24,11 +34,15 @@
                 <button class="lab-btn lab-btn--small" id="labPingAll" type="button">ping all</button>
             </div>
             <div class="lab-health" id="labHealth">
-                <div class="lab-health-row" data-endpoint="/api/stats">      <span class="lab-h-name">/api/stats</span>      <span class="lab-h-status">idle</span></div>
-                <div class="lab-health-row" data-endpoint="/api/chips">      <span class="lab-h-name">/api/chips</span>      <span class="lab-h-status">idle</span></div>
-                <div class="lab-health-row" data-endpoint="/api/generate"    data-method="HEAD"><span class="lab-h-name">/api/generate</span>   <span class="lab-h-status">idle</span></div>
-                <div class="lab-health-row" data-endpoint="/api/image"       data-method="HEAD"><span class="lab-h-name">/api/image</span>      <span class="lab-h-status">idle</span></div>
-                <div class="lab-health-row" data-endpoint="/api/download"    data-method="HEAD"><span class="lab-h-name">/api/download</span>   <span class="lab-h-status">idle</span></div>
+                <div class="lab-health-row" data-endpoint="/api/stats">    <span class="lab-h-name">/api/stats</span>    <span class="lab-h-status">idle</span></div>
+                <div class="lab-health-row" data-endpoint="/api/chips">    <span class="lab-h-name">/api/chips</span>    <span class="lab-h-status">idle</span></div>
+                <div class="lab-health-row" data-endpoint="/api/presets">  <span class="lab-h-name">/api/presets</span>  <span class="lab-h-status">idle</span></div>
+                <div class="lab-health-row" data-endpoint="/api/history">  <span class="lab-h-name">/api/history</span>  <span class="lab-h-status">idle</span></div>
+                <div class="lab-health-row" data-endpoint="/api/info">     <span class="lab-h-name">/api/info</span>     <span class="lab-h-status">idle</span></div>
+                <div class="lab-health-row" data-endpoint="/api/generate"> <span class="lab-h-name">/api/generate</span> <span class="lab-h-status">idle</span></div>
+                <div class="lab-health-row" data-endpoint="/api/image">    <span class="lab-h-name">/api/image</span>    <span class="lab-h-status">idle</span></div>
+                <div class="lab-health-row" data-endpoint="/api/download"> <span class="lab-h-name">/api/download</span> <span class="lab-h-status">idle</span></div>
+                <div class="lab-health-row" data-endpoint="/api/enhance">  <span class="lab-h-name">/api/enhance</span>  <span class="lab-h-status">idle</span></div>
             </div>
         </div>
 
@@ -46,24 +60,84 @@
             </div>
         </div>
 
-        <!-- KV STATE: CHIPS -->
+        <!-- STORAGE BROWSER -->
+        <div class="lab-panel gen-panel">
+            <div class="panel-bar">
+                <span class="panel-tag">▢</span>
+                <span class="panel-name">// STORAGE_BROWSER</span>
+                <button class="lab-btn lab-btn--small" id="labReloadStorage" type="button">refresh</button>
+            </div>
+            <div class="lab-storage" id="labStorage">loading…</div>
+        </div>
+
+        <!-- RECENT RENDERS -->
         <div class="lab-panel gen-panel lab-panel--wide">
             <div class="panel-bar">
+                <span class="panel-tag">▶</span>
+                <span class="panel-name">// RECENT_RENDERS</span>
+                <button class="lab-btn lab-btn--small" id="labReloadRecent" type="button">refresh</button>
+            </div>
+            <div class="lab-recent" id="labRecent">loading…</div>
+        </div>
+
+        <!-- PROMPT TESTER -->
+        <div class="lab-panel gen-panel lab-panel--wide">
+            <div class="panel-bar">
+                <span class="panel-tag">✦</span>
+                <span class="panel-name">// PROMPT_TESTER</span>
+                <span class="panel-hint">sends to /api/enhance — see what claude does to it</span>
+            </div>
+            <div class="lab-tester">
+                <textarea class="lab-tester-input" id="labTesterInput" rows="4" placeholder="paste a prompt here to test what claude will enhance it to…"></textarea>
+                <div class="lab-tester-row">
+                    <select class="lab-tester-page" id="labTesterPage">
+                        <option value="video">video context</option>
+                        <option value="image">image context</option>
+                    </select>
+                    <button class="lab-btn" id="labTesterRun" type="button">✦ enhance</button>
+                </div>
+                <div class="lab-tester-out" id="labTesterOut" hidden></div>
+            </div>
+        </div>
+
+        <!-- KV STATE: CHIPS -->
+        <div class="lab-panel gen-panel">
+            <div class="panel-bar">
                 <span class="panel-tag">▦</span>
-                <span class="panel-name">// KV_STATE / xa-chips</span>
+                <span class="panel-name">// KV / xa-chips</span>
                 <button class="lab-btn lab-btn--small" id="labReloadChips" type="button">reload</button>
             </div>
             <pre class="lab-json" id="labChipsJson">loading…</pre>
         </div>
 
         <!-- KV STATE: STATS -->
-        <div class="lab-panel gen-panel lab-panel--wide">
+        <div class="lab-panel gen-panel">
             <div class="panel-bar">
                 <span class="panel-tag">▦</span>
-                <span class="panel-name">// KV_STATE / xa-stats</span>
+                <span class="panel-name">// KV / xa-stats</span>
                 <button class="lab-btn lab-btn--small" id="labReloadStats" type="button">reload</button>
             </div>
             <pre class="lab-json" id="labStatsJson">loading…</pre>
+        </div>
+
+        <!-- KV STATE: PRESETS -->
+        <div class="lab-panel gen-panel">
+            <div class="panel-bar">
+                <span class="panel-tag">▦</span>
+                <span class="panel-name">// KV / xa-presets</span>
+                <button class="lab-btn lab-btn--small" id="labReloadPresets" type="button">reload</button>
+            </div>
+            <pre class="lab-json" id="labPresetsJson">loading…</pre>
+        </div>
+
+        <!-- KV STATE: HISTORY -->
+        <div class="lab-panel gen-panel">
+            <div class="panel-bar">
+                <span class="panel-tag">▦</span>
+                <span class="panel-name">// KV / xa-history</span>
+                <button class="lab-btn lab-btn--small" id="labReloadHistory" type="button">reload</button>
+            </div>
+            <pre class="lab-json" id="labHistoryJson">loading…</pre>
         </div>
 
         <!-- ACTIONS -->
@@ -75,8 +149,9 @@
             </div>
             <div class="lab-actions">
                 <button class="lab-btn" id="labResetChips"  type="button">reset chips to defaults</button>
-                <button class="lab-btn lab-btn--danger" id="labClearLocal"  type="button">clear localStorage</button>
-                <button class="lab-btn lab-btn--danger" id="labForceLogout" type="button">force logout</button>
+                <button class="lab-btn lab-btn--danger" id="labClearHistory" type="button">wipe render history</button>
+                <button class="lab-btn lab-btn--danger" id="labClearLocal"   type="button">clear localStorage</button>
+                <button class="lab-btn lab-btn--danger" id="labForceLogout"  type="button">force logout</button>
             </div>
             <div class="lab-action-result" id="labActionResult" hidden></div>
         </div>
