@@ -20,7 +20,7 @@ import time
 AUTH_SECRET    = os.environ.get("AUTH_SECRET", "")
 USER_PASSWORD  = os.environ.get("AUTH_USER_PASSWORD", "")
 DEV_PASSWORD   = os.environ.get("AUTH_DEV_PASSWORD", "")
-SESSION_DAYS   = 30
+SESSION_DAYS   = 7
 
 
 def _b64url(data: bytes) -> str:
